@@ -8,16 +8,31 @@ def get_raw_data(filename='sample_layer1.json'):
     Input:
         filename, default value contains 250 entries
     Output:
-        list with the recipes
+        list with all the recipes
     """
     data_dir = '../data/'
     file_path = data_dir + filename
-    print('Loadin file ', file_path)
+    print('Loading file ', file_path)
     with open(file_path,'r') as file:
         raw_data = json.load(file)
 
     return raw_data
+def get_raw_ingredients(filename='sample_det_ingrs.json'):
+    """
+    Get the raw ingredients
 
+    Input: 
+        filename, default is a file containing 250 entries
+    Output:
+        list with the ingredients
+    """
+    data_dir = '../data/'
+    file_path = data_dir + filename
+    print('Loading ingredient file: ' + file_path)
+    with open(file_path, 'r') as file:
+        raw_ingredients = json.load(file)
+    
+    return raw_ingredients
 
 def get_sweet_vocabulary():
     """
@@ -31,7 +46,7 @@ def get_sweet_vocabulary():
                       'ice cream','praline','macaron','cheesecake','cupcake', 
                       'waffle','pudding','truffle','toffee','tart',
                       'torte', 'zabiglione','trifle','toffee','sweets',
-                      'sundae','strudel','sugar','shortcake','souffle',
+                      'sundae','strudel','shortcake','souffle',
                       'shortbread','sherbet','scone'"s'mores",'bread',
                       'popsicle','popover','brittle','pastry','parfait',
                       'panna','cotta','nougat','muffin','mousse','meringue'
@@ -53,22 +68,24 @@ def get_sweet_vocabulary():
     
     return dessert_identifier
 
-def find_desserts(all_recipes):
+def find_desserts(all_recipes, all_ingredients):
     """
     Extract the dessert recipes from a list of recipes
     bsed on a list of identifier words
     Input:
-        List of recipes
+        List of recipes and list of ingredients
     Output:
-        List of dessert recipes
+        List of dessert recipes, and a list of their ingredients
     """
 
     dessert_list = []
+    ingredient_list = []
     dessert_ids = get_sweet_vocabulary()
-    for recipe in all_recipes:
+    for item,recipe in enumerate(all_recipes):
         recipe_title = recipe['title'].lower().split()
         to_dessert_list = [word for word in recipe_title if word in dessert_ids]
         if len(to_dessert_list)>0:
             dessert_list.append(recipe)
-
-    return dessert_list
+            ingredient_list.append(all_ingredients[item])
+    
+    return dessert_list, ingredient_list
