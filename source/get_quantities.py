@@ -22,6 +22,7 @@ ingredient_list = raw_ingrs[item]['ingredients']
 
 raw_ingrs[item]['qty'] = []
 amounts = find_amounts(recipe_ingredients_wq,ingredient_list)
+print(amounts)
 for amt in amounts:
     raw_ingrs[item]['qty'].append({'qty':amt})
 
@@ -49,10 +50,10 @@ def find_amounts(recipe_ingredients_wq,ingredient_list):
         
             print('\t \t amount {:1.2f} ml'.format(amount))
 
-    amounts = np.array(amounts)/np.sum(amounts)
-    print(amounts)
+    qts = np.array(amounts)/np.sum(amounts)
+    # print(qts)
     # add quantity
-    return amounts
+    return qts
 
 
 
