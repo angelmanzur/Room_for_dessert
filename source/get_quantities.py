@@ -13,7 +13,7 @@ raw_recipe = get_raw_data()
 conv_dict = get_conversion_dictionary()
 
 item = np.random.randint(len(raw_recipe))
-item = 15881
+# item = 15881
 print('item',item)
 # get a list of the ingredients from the raw recipe
 recipe_ingredients_wq = raw_recipe[item]['ingredients']
@@ -28,8 +28,7 @@ for amt in amounts:
 
 def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
     n_ingredients = len(recipe_ingredients_wq)
-    pattern = r'[0-9]?\s?[0-9]+.?'+re.escape('/')+r'?[0-9]?\s+\w+'
-    total_amount = 0
+    pattern = r'[0-9]?-?[0-9]?\s?[0-9]+.?'+re.escape('/')+r'?[0-9]?\s+\w+'
     amounts = []
     for i in range(n_ingredients):  
         full_ingredient = recipe_ingredients_wq[i]['text']
@@ -44,28 +43,39 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
             else:
                 one_ingredient = reg_ingredients[0] 
                     
-            print(full_ingredient,'\n \t \t',one_ingredient,'\n')
+            print(full_ingredient,'\n \t \t',one_ingredient, end='\t')
             
             entries = one_ingredient.split(' ')
             if len(entries)==2:
-                if entries[0].isnumeric():
-                    amount = int(entries[0])*convert_to_ml(entries[1],conv_dict)
-                elif r'/' in entries[0]:
-                    number = entries[0].split(r'/')
+                if entries[0].isnumeric() or r'.' in entries[0]:
+                    amount = float(entries[0])*convert_to_ml(entries[1],conv_dict)
+                elif r'/' in entries[0] and r'-' not in entries[0]:
+                    fraction = entries[0].split(r'/')
+                    if len(fraction)==2:
+                        amount = int(fraction[0])/int(fraction[1])*convert_to_ml(entries[1],conv_dict)
+                elif r'/' in entries[0] and r'-' in entries[0]:
 
-                    if len(number)==2:
-                        amount = int(number[0])/int(number[1])*convert_to_ml(entries[1],conv_dict)
+                    number = entries[0].split(r'-')
+                    fraction = number[1].split(r'/')
+                    # print(number, fraction)
+                    if len(fraction)==2:
+                        amount = (float(number[0]) + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[1],conv_dict)
                                          
             elif len(entries)==3:
                 if entries[0].isnumeric() and entries[1].isnumeric():
                     amount = int(entries[0]) * int(entries[1])*convert_to_ml(entries[2],conv_dict)
+                elif entries[0].isnumeric() and r'/' in entries[1]:
+                    number = int(enries[0])
+                    fraction = entries[1].split(r'/')
+                    if len(fraction)==2:
+                        amount = (number + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[2], conv_dict)
+            
             amounts.append(amount)
-        
-            print('\t \t amount {:1.2f} ml'.format(amount))
+       
+            print(' amount {:1.2f} ml'.format(amount))
 
     qts = np.array(amounts)/np.sum(amounts)
-    # print(qts)
-    # add quantity
+
     return qts
 
 
@@ -74,6 +84,7 @@ def get_conversion_dictionary():
     define a dictionary with conversion units into ml
     """
     conversion = {'cup': 236.588,
+                'c': 236.588,
                 'oz': 29.5735,
                 'ounce': 29.5735,
                 'teaspoon': 4.92892,
@@ -103,9 +114,11 @@ def get_best_unit(ingred_list, conversion):
     the code will identify both, this function tells which one to use
     """
     for ingred in ingred_list:
-        inspect = ingred.split(' ')
-        print(inspect)
-        new_unit = singularize(inspect[1].lower)
+        # print(ingred)
+        inspect = ingred.strip().split(' ')
+        # print(inspect[1].lower())
+
+        new_unit = singularize(inspect[1].lower())
 
         if new_unit in list(conversion.keys()):
             return ingred
