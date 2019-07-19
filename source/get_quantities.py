@@ -65,7 +65,7 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
                 if entries[0].isnumeric() and entries[1].isnumeric():
                     amount = int(entries[0]) * int(entries[1])*convert_to_ml(entries[2],conv_dict)
                 elif entries[0].isnumeric() and r'/' in entries[1]:
-                    number = int(enries[0])
+                    number = int(entries[0])
                     fraction = entries[1].split(r'/')
                     if len(fraction)==2:
                         amount = (number + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[2], conv_dict)
@@ -75,7 +75,6 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
             print(' amount {:1.2f} ml'.format(amount))
 
     qts = np.array(amounts)/np.sum(amounts)
-
     return qts
 
 
@@ -101,8 +100,7 @@ def get_conversion_dictionary():
                 'slice': 22.18015,
                 'lb':  453.59,
                 'pint': 473.176,
-                'kg': 1000.
-
+                'kg': 1000.0
     }
     return conversion
 
