@@ -47,7 +47,7 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
             
             entries = one_ingredient.split(' ')
             if len(entries)==2:
-                if entries[0].isnumeric() or r'.' in entries[0]:
+                if entries[0].strip('-').isnumeric() or r'.' in entries[0]:
                     amount = float(entries[0])*convert_to_ml(entries[1],conv_dict)
                 elif r'/' in entries[0] and r'-' not in entries[0]:
                     fraction = entries[0].split(r'/')
@@ -70,7 +70,7 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
                     if len(fraction)==2:
                         amount = (number + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[2], conv_dict)
             
-            amounts.append(amount)
+            amounts.append(np.abs(amount))
        
             print(' amount {:1.2f} ml'.format(amount))
 
@@ -84,6 +84,15 @@ def get_conversion_dictionary():
     """
     conversion = {'cup': 236.588,
                 'c': 236.588,
+                'small': 118.294,
+                'medium': 236.588,
+                'onion' : 236.588,
+                'red' : 236.588,
+                'yellow' : 236.588,
+                'green' : 236.588,
+                'baby': 236.588,
+                'bell' : 236.588,
+                'large' : 354.882,
                 'oz': 29.5735,
                 'ounce': 29.5735,
                 'teaspoon': 4.92892,
@@ -91,6 +100,10 @@ def get_conversion_dictionary():
                 't':   4.92892,
                 'ts':  4.92892,
                 'tspn':4.92892,
+                'garlic': 4.92892,
+                'clove':4.92892,
+                'pinch': 0.616115,
+                'dash': 0.616115,
                 'tablespoon': 14.7868,
                 'tbsp': 14.7868,
                 #'T': 14.7868,
@@ -99,8 +112,10 @@ def get_conversion_dictionary():
                 'egg': 51.75368,
                 'slice': 22.18015,
                 'lb':  453.59,
+                'pound': 453.59,
                 'pint': 473.176,
-                'kg': 1000.0
+                'kg': 1000.0,
+                'head': 906.
     }
     return conversion
 
