@@ -12,6 +12,7 @@ def get_raw_data(filename='sample_layer1.json'):
     """
     data_dir = '../data/'
     file_path = data_dir + filename
+    file_path = data_dir + filename
     print('Loading file ', file_path)
     with open(file_path,'r') as file:
         raw_data = json.load(file)
