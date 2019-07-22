@@ -80,13 +80,13 @@ def not_dessert_ingredients():
     Output:
         List of words not being desserts.
     """
-    not_dessert_ingrs = ['fish','salmon','chicken','turkey','garlic', 'onion','lamb',
+    not_dessert_ingrs = ['fish','salmon','tuna','chicken','turkey','garlic', 'onion','lamb',
     'sausage','shrimp','beef', 'taco']
 
     return not_dessert_ingrs
 
 
-def find_desserts(all_recipes, all_ingredients):
+def find_desserts(all_recipes, all_ingredients, test_id='000'):
     """
     Extract the dessert recipes from a list of recipes
     bsed on a list of identifier words
@@ -104,31 +104,31 @@ def find_desserts(all_recipes, all_ingredients):
     for item,recipe in enumerate(all_recipes):
         #get the title and convert it into a list
         recipe_title = recipe['title'].lower().split()
-
+        recipe_id = recipe['id']
         #if any word in the title is also a non dsert id, (soup, salad, etc...)
         # do not include it  
-        # print('1. \t test for non dessert words in title')     
+        if(test_id == recipe_id): print('1. \t test for non dessert words in title')     
         if any(singularize(word) in non_dessert_ids for word in recipe_title):
             continue
 
         # look at the ingredients, if any ingredient is in the not dessert ingredient list, do not add it.
         tmp_ingredient_list = []
-        # print('2. \t test for non dessert ingredients')
+        if(test_id == recipe_id): print('2. \t test for non dessert ingredients')
         found_savory_word =0
         for ingred_list in all_ingredients[item]['ingredients']:
             
             for bad_word in non_dessert_ingredients:
-                # print(bad_word,';  ',ingred_list['text'])
-                if re.match(bad_word, ingred_list['text']):
+                if(test_id == recipe_id): print(bad_word,';  ',ingred_list['text'])
+                if re.search(bad_word, ingred_list['text']):
                     # print(bad_word, ingred_list['text'])
                     found_savory_word = 1
-                    # input()
+                    if(test_id == recipe_id): input()
                     continue
         if found_savory_word==1:
             continue
 
         
-        # print('3. \t look for dessert words in title')
+        if(test_id == recipe_id): print('3. \t look for dessert words in title')
         # if any(singularize(word) in non_dessert_ingredients for word in tmp_ingredient_list):
             # continue
 
@@ -136,7 +136,7 @@ def find_desserts(all_recipes, all_ingredients):
         
 
         
-        # print('4. \t if found a word in tite, add it')
+        if(test_id == recipe_id): print('4. \t if found a word in tite, add it')
 
         if len(to_dessert_list)>0:
             dessert_list.append(recipe)
