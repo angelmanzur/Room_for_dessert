@@ -1,5 +1,6 @@
 import json
 import numpy as np
+from pattern.text.en import singularize
 
 def get_raw_data(filename='sample_layer1.json'):
     """
@@ -64,10 +65,25 @@ def get_sweet_vocabulary():
                       'jello','gateau','glacee','gelatine','tarte','bonbon',
                       'biscuits', 'blondie','buckeye','confection','candy',
                       'cupcone','hostess','oreo','snickerdoodles','twinkie',
-                      'butter','parfaits','vanilla','leches'
+                      'butter','parfaits','vanilla','leches', 'scone'
                      ]
+    non_dessert_identifier = ['soup','tacos', 'salad','casserole',
+                    'pasta', 'meatloaf','fish','seafood','risotto'
+                    ]
+    return dessert_identifier, non_dessert_identifier
+
+def not_desserts_vocabulary():
+    """
+    Get a loist of words that are not associated with a dessert. Like chicken, 
+    so that chicken pot pir won't get classified as a dessert
     
-    return dessert_identifier
+    Output:
+        List of words not being desserts.
+    """
+    not_dessert_vocab = ['fish','salmon','chicken','turkey','garlic']
+
+    return not_dessert_vocab
+
 
 def find_desserts(all_recipes, all_ingredients):
     """
@@ -81,10 +97,17 @@ def find_desserts(all_recipes, all_ingredients):
 
     dessert_list = []
     ingredient_list = []
-    dessert_ids = get_sweet_vocabulary()
+    dessert_ids, non_dessert_ids = get_sweet_vocabulary()
     for item,recipe in enumerate(all_recipes):
+        #get the title and convert it into a list
         recipe_title = recipe['title'].lower().split()
         to_dessert_list = [word for word in recipe_title if word in dessert_ids]
+        
+        #if any word in the title is also a non dsert id, (soup, salad, etc...)
+        # do not include it
+        if any(singularize(word) in non_dessert_ids for word in recipe_title):
+            continue
+
         if len(to_dessert_list)>0:
             dessert_list.append(recipe)
             ingredient_list.append(all_ingredients[item])
