@@ -2,6 +2,7 @@ import json
 import numpy as np
 from pattern.text.en import singularize
 import re
+import spacy
 def get_raw_data(filename='sample_layer1.json'):
     """
     Open the json file, and load the data as a list
