@@ -112,7 +112,7 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
     ingredient_list = []
     dessert_ids, non_dessert_ids = get_sweet_vocabulary()
     non_dessert_ingredients = not_dessert_ingredients()
-    print(non_dessert_ingredients)
+    # print(non_dessert_ingredients)
     for item,recipe in enumerate(all_recipes):
         #get the title and convert it into a list
         recipe_title = recipe['title'].lower().split()
