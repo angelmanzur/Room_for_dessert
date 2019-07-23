@@ -68,8 +68,8 @@ def get_sweet_vocabulary():
                       'butter','parfaits','vanilla','leches', 'scone'
                      ]
     non_dessert_identifier = ['soup','taco', 'salad','casserole',
-                    'pasta', 'meatloaf','fish','seafood','risotto','stew', 'savory',
-                    'stir-fry','corn bread','steak'
+                    'pasta', 'meatloaf','fish','seafood','risotto','stew', 'savory','savoury',
+                    'stir-fry','corn bread','steak','vinaigrette','pasta','ravioli', 'gnocchi'
                     ]
     return dessert_identifier, non_dessert_identifier
 
@@ -83,7 +83,8 @@ def not_dessert_ingredients():
     """
     not_dessert_ingrs = ['fish','salmon','tuna','chicken','turkey','garlic', 'onion','lamb',
     'sausage','shrimp','beef', 'taco','shallot','veal','pork','mincemeat','crab','filet',
-    'chipotle', 'panceta', 'asparagus','parsley','mushroom','sardines','olives']
+    'chipotle', 'panceta', 'asparagus','parsley','mushroom','sardines','olives','oyster','ham',
+    'snow pea', 'kimchi','cilantro','Worcestershire','tomato paste', 'salsa','bologna']
 
     return not_dessert_ingrs
 
@@ -96,7 +97,7 @@ def clean_dessert_ingredients(all_ingredients):
             print(ingredient['text'])
         break
     return all_ingredients
-    
+
 def find_desserts(all_recipes, all_ingredients, test_id='000'):
     """
     Extract the dessert recipes from a list of recipes
