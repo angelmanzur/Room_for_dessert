@@ -9,19 +9,19 @@ Created on Wed Jul 17 20:57:40 2019
 import json
 
 #look at all the data
-def get_layer1():
+def get_layer1(nrecipes=10000):
     data_file = '../data/layer1.json'
     with open(data_file, 'r') as file:
         layer_data = json.load(file)
         
     sample_layer_data = []
-    for i in range(20000):
+    for i in range(nrecipes):
         print('-',end='')
         sample_layer_data.append(layer_data[i])
         if i%50==0:
-            print(i,'/ 20000 done')
+            print('{}/{} done'.format(i,nrecipes))
             
-    save_file = '../data/sample_layer1.json'
+    save_file = '../data/sample_50k_layer1.json'
     
     with open(save_file, 'w') as outfile:
         json.dump(sample_layer_data, outfile)
@@ -29,19 +29,19 @@ def get_layer1():
     print('\n got the downsize file')  
     pass
 
-def get_ings():
+def get_ings(nrecipes=10000):
     data_file = '../data/det_ingrs.json'
     with open(data_file, 'r') as file:
         layer_data = json.load(file)
         
     sample_layer_data = []
-    for i in range(20000):
+    for i in range(nrecipes):
         print('-',end='')
         sample_layer_data.append(layer_data[i])
         if i%50==0:
-            print(i,'/ 20000 done')
+            print('{}/{} done'.format(i,nrecipes))
             
-    save_file = '../data/sample_det_ingrs.json'
+    save_file = '../data/sample_50k_det_ingrs.json'
     
     with open(save_file, 'w') as outfile:
         json.dump(sample_layer_data, outfile)

@@ -71,7 +71,7 @@ def get_sweet_vocabulary():
     non_dessert_identifier = ['soup','taco', 'salad','casserole',
                     'pasta', 'meatloaf','fish','seafood','risotto','stew', 'savory','savoury',
                     'stir-fry','corn bread','steak','vinaigrette','pasta','ravioli', 'gnocchi'
-                    ]
+                    ,'tagliatelle']
     return dessert_identifier, non_dessert_identifier
 
 def not_dessert_ingredients():
