@@ -7,12 +7,14 @@ Created on Wed Jul 24 14:50:57 2019
 """
 
 from extract_desserts import *
+from get_quantities import *
 from pattern.text.en import singularize
 from nltk import FreqDist
 import matplotlib.pyplot as plt
 import numpy as np
 np.random.seed(seed=2019)
 
+import re
 import gensim
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
@@ -138,7 +140,7 @@ def get_glove_embeddings(ndim=50):
     return embedding_index
 #=======================================================================#
  
-import re
+
 
 not_a_flavor_list = ['flour','cake mix','baking soda','baking powder', 'canola oil',
                      'vegetable oil','cornstarch','shortening','margarine','yeast',

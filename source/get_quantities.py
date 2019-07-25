@@ -8,23 +8,36 @@ from pattern.text.en import singularize
 # open the dessert ingredients file
 
 
-raw_ingrs = get_raw_ingredients()
-raw_recipe = get_raw_data()
+raw_data = get_raw_data('sample_layer1.json')
+raw_ingredients = get_raw_ingredients('sample_det_ingrs.json')
 conv_dict = get_conversion_dictionary()
 
-item = np.random.randint(len(raw_recipe))
+
+
+item = np.random.randint(len(raw_data))
 # item = 15881
 print('item',item)
 # get a list of the ingredients from the raw recipe
-recipe_ingredients_wq = raw_recipe[item]['ingredients']
-# get a list ot ingredient without quantities
-ingredient_list = raw_ingrs[item]['ingredients']
+raw_ingredients = get_all_quantities(raw_data, raw_ingredients)
 
-raw_ingrs[item]['qty'] = []
-amounts = find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict)
-print(amounts)
-for amt in amounts:
-    raw_ingrs[item]['qty'].append({'qty':amt})
+def get_all_quantities(raw_data, raw_ingredients):
+    for item in range(len(raw_data)):
+        print('item {}'.format(item))
+        # get a list of the ingredients
+        recipe_ingredients_wq = raw_data[item]['ingredients']
+        # get a list ot ingredient without quantities
+        ingredient_list = raw_ingredients[item]['ingredients']
+        # set an empty list for the amounts    
+        raw_ingredients[item]['qty'] = []
+        amounts = find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict)
+        #print(amounts)
+        for amt in amounts:
+            raw_ingredients[item]['qty'].append({'qty':amt})
+
+    return raw_ingredients
+
+
+
 
 def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
     n_ingredients = len(recipe_ingredients_wq)
@@ -43,36 +56,45 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
             else:
                 one_ingredient = reg_ingredients[0] 
                     
-            print(full_ingredient,'\n \t \t',one_ingredient, end='\t')
+            #print(full_ingredient,'\n \t \t',one_ingredient, end='\t')
             
             entries = one_ingredient.split(' ')
-            if len(entries)==2:
-                if entries[0].strip('-').isnumeric() or r'.' in entries[0]:
-                    amount = float(entries[0])*convert_to_ml(entries[1],conv_dict)
-                elif r'/' in entries[0] and r'-' not in entries[0]:
-                    fraction = entries[0].split(r'/')
-                    if len(fraction)==2:
-                        amount = int(fraction[0])/int(fraction[1])*convert_to_ml(entries[1],conv_dict)
-                elif r'/' in entries[0] and r'-' in entries[0]:
-
-                    number = entries[0].split(r'-')
-                    fraction = number[1].split(r'/')
-                    # print(number, fraction)
-                    if len(fraction)==2:
-                        amount = (float(number[0]) + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[1],conv_dict)
-                                         
-            elif len(entries)==3:
-                if entries[0].isnumeric() and entries[1].isnumeric():
-                    amount = int(entries[0]) * int(entries[1])*convert_to_ml(entries[2],conv_dict)
-                elif entries[0].isnumeric() and r'/' in entries[1]:
-                    number = int(entries[0])
-                    fraction = entries[1].split(r'/')
-                    if len(fraction)==2:
-                        amount = (number + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[2], conv_dict)
-            
+            #print('\n -> ',entries)
+            try:
+                if len(entries)==2:
+                    
+                    tpattern = '[0-9]+-[0-9]+\.[0-9]+'
+                    if re.match(tpattern, entries[0]):
+                        numbers = entries[0].split('-')
+                        amount = float(numbers[1])
+                    elif entries[0].strip('-').isnumeric() or r'.' in entries[0]:
+                        amount = float(entries[0].strip('-'))*convert_to_ml(entries[1],conv_dict)
+                    elif r'/' in entries[0] and r'-' not in entries[0]:
+                        fraction = entries[0].split(r'/')
+                        if len(fraction)==2:
+                            amount = int(fraction[0])/int(fraction[1])*convert_to_ml(entries[1],conv_dict)
+                    elif r'/' in entries[0] and r'-' in entries[0]:
+    
+                        number = entries[0].split(r'-')
+                        fraction = number[1].split(r'/')
+                        # print(number, fraction)
+                        if len(fraction)==2 and number[0].isnumeric():
+                            amount = (float(number[0]) + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[1],conv_dict)
+                        else:
+                            amount = ( int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[1],conv_dict)
+                elif len(entries)==3:
+                    if entries[0].isnumeric() and entries[1].isnumeric():
+                        amount = int(entries[0]) * int(entries[1])*convert_to_ml(entries[2],conv_dict)
+                    elif entries[0].isnumeric() and r'/' in entries[1]:
+                        number = int(entries[0])
+                        fraction = entries[1].split(r'/')
+                        if len(fraction)==2:
+                            amount = (number + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[2], conv_dict)
+            except:
+                amount = 0 
             amounts.append(np.abs(amount))
        
-            print(' amount {:1.2f} ml'.format(amount))
+            #print(' amount {:1.2f} ml'.format(amount))
 
     qts = np.array(amounts)/np.sum(amounts)
     return qts
@@ -84,6 +106,7 @@ def get_conversion_dictionary():
     """
     conversion = {'cup': 236.588,
                 'c': 236.588,
+                'can': 236.588,
                 'small': 118.294,
                 'medium': 236.588,
                 'onion' : 236.588,
