@@ -291,44 +291,48 @@ def print_dessert_ingredients(all_ingredients):
             break
     return all_ingredients
 #=========================================================================# 
-def get_embedding_matrix(word_index, dimension=50, glove=1):
+def get_glove_embedding_matrix(word_index, dimension):
     
     embedding_dim = dimension
-    if glove==1:
-        embedding_index = get_glove_embeddings(embedding_dim)
+   
+    embedding_index = get_glove_embeddings(embedding_dim)
  
-        embedding_matrix = np.zeros((len(word_index)+1, embedding_dim))    
+    embedding_matrix = np.zeros((len(word_index)+1, embedding_dim))    
 
-        for word,i in word_index.items():
-            embedding_vector = embedding_index.get(word)
-            if embedding_vector is not None:
-                embedding_matrix[i] = embedding_vector
-        return embedding_matrix
-    else:
-        embedding_matrix_w2v = np.zeros((len(word_index), embedding_dim))
-        for i,word in enumerate(word_index):
-            try:
-                embedding_vector = w2v_model.wv.__getitem__(word)
-        #       embedding_vector = embedding_index.get(word)
-                if embedding_vector is not None:
-                    embedding_matrix_w2v[i] = embedding_vector
-            except:
-                pass
-        return embedding_matrix_w2v
-    #####################
-
-    pass
+    for word,i in word_index.items():
+        embedding_vector = embedding_index.get(word)
+        if embedding_vector is not None:
+            embedding_matrix[i] = embedding_vector
+    return embedding_matrix
+   
 #=========================================================================# 
-def embedding_LSTM(data, label, embedding_matrix, word_index, dimension):    
+def get_w2v_embedding_matrix(word_index, dimension, w2v_model):
+    
+    embedding_dim = dimension
+
+    embedding_matrix_w2v = np.zeros((len(word_index), embedding_dim))
+    for i,word in enumerate(word_index):
+        try:
+            embedding_vector = w2v_model.wv.__getitem__(word)
+    #       embedding_vector = embedding_index.get(word)
+            if embedding_vector is not None:
+                embedding_matrix_w2v[i] = embedding_vector
+        except:
+            pass
+    return embedding_matrix_w2v
+
+#=========================================================================# 
+def embedding_LSTM(data, label, embedding_matrix, w_index, dimension, extra_dim):    
     
     X_train, X_test, y_train, y_test = train_test_split(data, label)
     x_train, x_val, y_train, y_val = train_val_split(X_train, y_train)
-
+    
+    word_index = w_index
 
     # using the gloVe embeddings
 
     embedding_dim = dimension
-    embedding_layer = Embedding(len(word_index)+1,
+    embedding_layer = Embedding(len(word_index)+extra_dim,
                             embedding_dim,
                             weights=[embedding_matrix],
                             input_length=max_seq_length,
@@ -520,17 +524,18 @@ def main():
     label = to_categorical(np.asarray(label))
 #=============================================================================#
 #using the word2vec as embedding
-    embedding_matrix_w2v = get_embedding_matrix(set(all_ingredients), embedding_dim, glove=0)
+    unique_ingredients = set(all_ingredients)
+    embedding_matrix_w2v = get_w2v_embedding_matrix(unique_ingredients, embedding_dim, w2v_model)
 
     w2v_rnn_model = embedding_LSTM(data, label,embedding_matrix_w2v, 
-                                     word_index, embedding_dim)
+                                     unique_ingredients, embedding_dim, 1)
     
 #=============================================================================#    
 # use the gloVe embeddings
-    embedding_matrix = get_embedding_matrix(word_index, embedding_dim, glove=1)
+    embedding_matrix = get_glove_embedding_matrix(word_index, embedding_dim)
 
     glove_rnn_model = embedding_LSTM(data, label,embedding_matrix, 
-                                     word_index, embedding_dim)
+                                     word_index, embedding_dim,0)
 
 
     print('DONE!!!')        

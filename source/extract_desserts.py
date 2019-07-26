@@ -122,7 +122,7 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
     # print(non_dessert_ingredients)
     for item,recipe in enumerate(all_recipes):
         
-        if item%1000==0:
+        if item%500==0:
             logging.info("read {0} recipes".format(item))
             
         #get the title and convert it into a list
