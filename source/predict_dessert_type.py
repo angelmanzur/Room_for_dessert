@@ -528,14 +528,14 @@ def main():
     embedding_matrix_w2v = get_w2v_embedding_matrix(unique_ingredients, embedding_dim, w2v_model)
 
     w2v_rnn_model = embedding_LSTM(data, label,embedding_matrix_w2v, 
-                                     unique_ingredients, embedding_dim, 1)
+                                     unique_ingredients, embedding_dim, 0)
     
 #=============================================================================#    
 # use the gloVe embeddings
     embedding_matrix = get_glove_embedding_matrix(word_index, embedding_dim)
 
     glove_rnn_model = embedding_LSTM(data, label,embedding_matrix, 
-                                     word_index, embedding_dim,0)
+                                     word_index, embedding_dim,1)
 
 
     print('DONE!!!')        
