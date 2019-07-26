@@ -423,17 +423,23 @@ print(confusion_matrix(y_test, y_pred_test))
 #=============================================================================#
 #using word 2 vec to create the matrix, weighted by the amounts
 
+for vec in qts_per_recipe: 
+    for v in vec: 
+        if vec is np.nan: 
+            print('found a nan')
+
+
 data_matrix_w =[]
 for item in range(len(ingredients_per_recipe)):
     sentence_vec = np.zeros(embedding_dim)
 
     for jtem, ingreds in enumerate(ingredients_per_recipe[item]):
-        if qts_per_recipe[item][jtem] is np.nan:
+        if qts_per_recipe[item][jtem]==0: 
             sentence_vec += w2v_model.wv.__getitem__(ingreds)
         else:
             sentence_vec += w2v_model.wv.__getitem__(ingreds)*qts_per_recipe[item][jtem]
     data_matrix_w.append(sentence_vec)
-   
+data_df = pd.DataFrame(data_matrix_w)   
 X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_matrix_w,  df.dessert.values.astype(int))
 
 from sklearn.ensemble import RandomForestClassifier
