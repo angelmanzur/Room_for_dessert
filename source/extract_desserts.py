@@ -3,6 +3,12 @@ import numpy as np
 from pattern.text.en import singularize
 import re
 import spacy
+
+import logging
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
+                    datefmt='%H:%M:%S',
+                   level=logging.INFO)
+
 def get_raw_data(filename='sample_layer1.json'):
     """
     Open the json file, and load the data as a list
@@ -115,6 +121,10 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
     non_dessert_ingredients = not_dessert_ingredients()
     # print(non_dessert_ingredients)
     for item,recipe in enumerate(all_recipes):
+        
+        if item%1000==0:
+            logging.info("read {0} recipes".format(item))
+            
         #get the title and convert it into a list
         recipe_title = recipe['title'].lower().split()
         recipe_id = recipe['id']
@@ -137,7 +147,7 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
                     found_savory_word = 1
                     if(test_id == recipe_id): input()
                     continue
-        if found_savory_word==1:
+        if found_savory_word==1 or len(all_ingredients[item]['ingredients'])<=2:
             continue
 
         
@@ -154,6 +164,8 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
         if len(to_dessert_list)>0:
             dessert_list.append(recipe)
             ingredient_list.append(all_ingredients[item])
+        
+        
     
     return dessert_list, ingredient_list
 

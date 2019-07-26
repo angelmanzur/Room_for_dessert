@@ -16,17 +16,25 @@ np.random.seed(seed=2019)
 
 import re
 import gensim
-import logging
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
-                    datefmt='%H:%M:%S',
-                   level=logging.INFO)
+import pandas as pd
 
+#some keras packages
+from keras.utils import to_categorical
+from keras.layers import Embedding
+from keras.layers import Bidirectional,GlobalMaxPool1D,Conv1D
+from keras.layers import LSTM,Input,Dense,Dropout,Activation
+from keras.models import Model
 
+# some sklearn packages
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.model_selection import train_test_split
 import warnings
 warnings.filterwarnings('ignore')
 
 #load the raw data
-
+max_num_words= 1000
+max_seq_length = 100
 # print the categories
 categories = ['cake', 'cookies', 'pie','bread','cupcake','candy', 'pudding','custard']
 categories = ['cake', 'cookies', 'pie', 'pudding']
@@ -166,31 +174,33 @@ def get_glove_embeddings(ndim=50):
  
 
 
-not_a_flavor_list = ['flour','cake mix','baking soda','baking powder', 'canola oil',
-                     'vegetable oil','cornstarch','shortening','margarine','yeast',
-                     'gelatin' ,'coloring','corn syrup','cooking spray', 
-         'crisco', 'cake', 'crisco','xanthan','bicarbonate','pie shell','pie crust',
-                     'cornmeal','splenda','stevium','ice cube', 'gluten','bread'
+not_a_flavor_list = ['flour','cake mix','baking soda','baking powder', 
+                     'canola oil','vegetable oil','cornstarch','shortening',
+                     'margarine','yeast','gelatin' ,'coloring',
+                     'corn syrup','cooking spray', 'crisco', 'cake', 
+                     'crisco','xanthan','bicarbonate','pie shell',
+                     'pie crust','cornmeal','splenda','stevium',
+                     'ice cube', 'gluten','bread'
                     ]
 
 generic_ingredient_list = ['pumpkin', 'vanilla','cinnammon','cocoa powder',
                            'chocolate chip','salted butter', 'graham cracker','mint',
                           'salted butter','coffee']
-
+#=========================================================================# 
 def in_not_a_flavor_list(ingredient):
     for word in not_a_flavor_list:
         if re.search(word, ingredient):
             return True   
     return False
 
-
+#=========================================================================# 
 def is_generic_ingredient(ingredient):
     for word in generic_ingredient_list:
 #         print(word,ingredient)
         if re.search(word, ingredient):
             return True, word
     return False, ingredient
-
+#=========================================================================# 
 def clean_dessert_ingredients(all_ingredients):
     count =0
     for item, ingredients_list in enumerate(all_ingredients):
@@ -267,7 +277,7 @@ def clean_dessert_ingredients(all_ingredients):
         if item%500==0:
             logging.info("read {0} recipes".format(item))
     return all_ingredients
-
+#=========================================================================# 
 def print_dessert_ingredients(all_ingredients):
     count =0
     for item, ingredients_list in enumerate(all_ingredients):
@@ -280,258 +290,277 @@ def print_dessert_ingredients(all_ingredients):
         if item==50:
             break
     return all_ingredients
+#=========================================================================# 
+def get_embedding_matrix(word_index, dimension=50, glove=1):
+    
+    embedding_dim = dimension
+    if glove==1:
+        embedding_index = get_glove_embeddings(embedding_dim)
+ 
+        embedding_matrix = np.zeros((len(word_index)+1, embedding_dim))    
+
+        for word,i in word_index.items():
+            embedding_vector = embedding_index.get(word)
+            if embedding_vector is not None:
+                embedding_matrix[i] = embedding_vector
+        return embedding_matrix
+    else:
+        embedding_matrix_w2v = np.zeros((len(word_index), embedding_dim))
+        for i,word in enumerate(word_index):
+            try:
+                embedding_vector = w2v_model.wv.__getitem__(word)
+        #       embedding_vector = embedding_index.get(word)
+                if embedding_vector is not None:
+                    embedding_matrix_w2v[i] = embedding_vector
+            except:
+                pass
+        return embedding_matrix_w2v
+    #####################
+
+    pass
+#=========================================================================# 
+def embedding_LSTM(data, label, embedding_matrix, word_index, dimension):    
+    
+    X_train, X_test, y_train, y_test = train_test_split(data, label)
+    x_train, x_val, y_train, y_val = train_val_split(X_train, y_train)
 
 
-#=========================================================================#   
-#load the data
-raw_data = get_raw_data('sample_layer1.json')
-raw_ingredients = get_raw_ingredients('sample_det_ingrs.json')
+    # using the gloVe embeddings
 
-#get the desserts
-desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)#
-
-
-total_recipes = len(raw_data)
-dessert_recipes = len(desserts)
-dessert_ingredients = len(dessert_ings)
-print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
-                            dessert_recipes, total_recipes,
-                            dessert_recipes/total_recipes*100))
-del raw_data
-del raw_ingredients
-dessert_ings = get_all_quantities(desserts, dessert_ings)
-clean_ingredients =  clean_dessert_ingredients(dessert_ings);
-
-#classify the recipes
-#new_data, new_data_ings, target = classify_desserts(desserts,dessert_ings)
-new_data, new_data_ings, new_ingredients, target = classify_desserts(desserts, clean_ingredients)
-print('classified {0}/{1}'.format(len(new_data),len(new_data_ings)))
-
-# set the data into a pandas dataframe
-import pandas as pd
-df = pd.DataFrame([new_data_ings,target]).T
-df.columns = ['ingredients','dessert']
-#df['dessert'] = np.where(df['dessert']=='cake', 1, 0)
-
-max_num_words= 1000
-max_seq_length = 100
-# get the test and the labels
-text = df.ingredients.values
-label = df.dessert.values
-from keras.utils import to_categorical
-
-# set tha label to categorical
-data, word_index = sequence_data(text)
-                                 
-label = to_categorical(np.asarray(label))
-# break into train, validation (20%)
-
-# get train val data set
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(data, label)
-x_train, x_val, y_train, y_val = train_val_split(X_train, y_train)
-
-# create an empty matrix based on gloVe embeddings
-embedding_dim = 50
-embedding_index = get_glove_embeddings(embedding_dim)
-embedding_matrix = np.zeros((len(word_index)+1, embedding_dim))
-#embedding_matrix.shape
-
-# using the gloVe embeddings
-for word,i in word_index.items():
-    embedding_vector = embedding_index.get(word)
-    if embedding_vector is not None:
-        embedding_matrix[i] = embedding_vector
-        
-from keras.layers import Embedding
-embedding_layer = Embedding(len(word_index)+1,
+    embedding_dim = dimension
+    embedding_layer = Embedding(len(word_index)+1,
                             embedding_dim,
                             weights=[embedding_matrix],
                             input_length=max_seq_length,
                             trainable=False)
 
-from keras.layers import Bidirectional,GlobalMaxPool1D,Conv1D
-from keras.layers import LSTM,Input,Dense,Dropout,Activation
-from keras.models import Model
 
-inp = Input(shape=(max_seq_length,))
-x = embedding_layer(inp)
-x = Bidirectional(LSTM(embedding_dim,return_sequences=True,dropout=0.1,recurrent_dropout=0.1))(x)
-x = GlobalMaxPool1D()(x)
-x = Dense(embedding_dim,activation='relu')(x)
-x = Dropout(0.1)(x)
-x = Dense(len(categories),activation='sigmoid')(x)
-model = Model(inputs=inp,outputs=x)
+    inp = Input(shape=(max_seq_length,))
+    x = embedding_layer(inp)
+    x = Bidirectional(LSTM(embedding_dim,return_sequences=True,dropout=0.1,recurrent_dropout=0.1))(x)
+    x = GlobalMaxPool1D()(x)
+    x = Dense(embedding_dim,activation='relu')(x)
+    x = Dropout(0.1)(x)
+    x = Dense(len(categories),activation='sigmoid')(x)
+    rnn_model = Model(inputs=inp,outputs=x)
 
-model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
-model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=40,batch_size=128);
-score = model.evaluate(x_val,y_val)
-print('score: {}%'.format(score[1]*100,))
-y_pred_test = model.predict(X_test)
+    rnn_model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
+    rnn_model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=40,batch_size=128);
+    score = rnn_model.evaluate(x_val,y_val)
+    print('score: {}%'.format(score[1]*100,))
+    y_pred_test = rnn_model.predict(X_test)
 
-score_test = model.evaluate(X_test, y_test)
-print('test score evaluation {}%'.format(score_test[1]*100))
+    score_test = rnn_model.evaluate(X_test, y_test)
+    print('test score evaluation {}%'.format(score_test[1]*100))
 
+    return rnn_model, x_train, y_train, x_val, y_val, X_test, y_test
+#=========================================================================#  
+def get_Word2Vec(dimension, ingredients_per_recipe):        
+    vec_size = dimension
+    w2v_model = gensim.models.Word2Vec(
+            size=vec_size,
+            window=5,
+            min_count=1,
+            workers=10,
+            alpha=0.02,
+            iter=4,
+            sg=0)
 
-
-
-#=============================================================================#
-#using word 2 vec to create the matrix
-ingredients_per_recipe = []
-qts_per_recipe = []
-all_ingredients = []
-        
-count =0
-for drecipe in new_ingredients:
-    ings =[]
-    qts = []
-    for ipos, entry in enumerate(drecipe['ingredients']):
-        if drecipe['valid'][ipos]:
-            ings.append(entry['text'])
-            all_ingredients.append(entry['text'])
-            qts.append(drecipe['qty'][ipos]['qty'])
-    ingredients_per_recipe.append(ings)
-    qts_per_recipe.append(qts)
-    count += 1
-    if count%500==0:
-        logging.info("read {0} ingredients".format(count))
-
-data_matrix =[]
-for item in range(len(ingredients_per_recipe)):
-    sentence_vec = np.zeros(embedding_dim)
-
-    for ingreds in ingredients_per_recipe[item]:
-        sentence_vec += w2v_model.wv.__getitem__(ingreds)
-
-    data_matrix.append(sentence_vec)
-   
-X_train, X_test, y_train, y_test = train_test_split(data_matrix,  df.dessert.values.astype(int))
-
-from sklearn.ensemble import RandomForestClassifier
-
-rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
-rforest.fit(X_train, y_train)
-y_pred_train = rforest.predict(X_train)
-y_pred_test = rforest.predict(X_test)
-from sklearn.metrics import accuracy_score, confusion_matrix
-print('train accuracy: {:1.2f}'.format(accuracy_score(y_train, y_pred_train)) )
-print(confusion_matrix(y_train, y_pred_train))
-print('test accuracy: {:1.2f}'.format(accuracy_score(y_test, y_pred_test)) )
-print(confusion_matrix(y_test, y_pred_test))
+    w2v_model.build_vocab(ingredients_per_recipe, progress_per=1000)
+    w2v_model.train(ingredients_per_recipe, total_examples=w2v_model.corpus_count,
+                    epochs=20, report_delay=1)
+    w2v_model.init_sims(replace=True)
 
 
-#=============================================================================#
-#using word 2 vec to create the matrix, weighted by the amounts
+    w1='pumpkin'
+    # w1='rum'
+    w2v_model.wv.most_similar(positive=w1, topn=10)
+      
+    
+    return w2v_model    
+#=========================================================================# 
+def get_ingredients_lists(new_ingredients):        
+    count =0
+    ingredients_per_recipe = []
+    qts_per_recipe = []
+    all_ingredients = []
+    for drecipe in new_ingredients:
+        ings =[]
+        qts = []
+        for ipos, entry in enumerate(drecipe['ingredients']):
+            if drecipe['valid'][ipos]:
+                ings.append(entry['text'])
+                all_ingredients.append(entry['text'])
+                qts.append(drecipe['qty'][ipos]['qty'])
+        ingredients_per_recipe.append(ings)
+        qts_per_recipe.append(qts)
+        count += 1
+        if count%500==0:
+            logging.info("read {0} ingredients".format(count))
+    return ingredients_per_recipe, qts_per_recipe, all_ingredients
+#=========================================================================# 
+def fit_RandomForest(X_train, y_train):
+    
+    rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
+    rforest.fit(X_train, y_train)
+    
+    return rforest    
+#=========================================================================#
+    
+#=========================================================================#
+    
+#=========================================================================#
+#load the data
+def main():
+    logging.info('Start by getting some data! ')
 
-for vec in qts_per_recipe: 
-    for v in vec: 
-        if vec is np.nan: 
-            print('found a nan')
+    raw_data = get_raw_data('sample_layer1.json')
+    raw_ingredients = get_raw_ingredients('sample_det_ingrs.json')
+
+    #get the desserts
+    logging.info('extract the desserts from it')
+    desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)#
 
 
-data_matrix_w =[]
-for item in range(len(ingredients_per_recipe)):
-    sentence_vec = np.zeros(embedding_dim)
+    total_recipes = len(raw_data)
+    dessert_recipes = len(desserts)
+    dessert_ingredients = len(dessert_ings)
+    print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
+                            dessert_recipes, total_recipes,
+                            dessert_recipes/total_recipes*100))
+    del raw_data, raw_ingredients #clear some memory
+    
+    #get the amounts for each dessert
+    dessert_ings = get_all_quantities(desserts, dessert_ings)
+    clean_ingredients =  clean_dessert_ingredients(dessert_ings);
 
-    for jtem, ingreds in enumerate(ingredients_per_recipe[item]):
-        if qts_per_recipe[item][jtem]==0: 
+    #classify the recipes
+    #do not use the ones we cannot identify
+    new_data, new_data_ings, new_ingredients, target = classify_desserts(desserts, clean_ingredients)
+    print('classified {0}/{1}'.format(len(new_data),len(new_data_ings)))
+
+    # set the data into a pandas dataframe to handle the data
+    df = pd.DataFrame([new_data_ings,target]).T
+    df.columns = ['ingredients','dessert']
+
+    # get the test and the labels
+    text = df.ingredients.values
+    
+
+    # dimension for the embedding matrix
+    embedding_dim = 50
+    
+    #get the data and a word index
+    data, word_index = sequence_data(text)
+    # set tha label to categorical                             
+    
+
+    # set a word 2 vector model and fit it with all the ingredients
+    ingredients_per_recipe, qts_per_recipe, all_ingredients = get_ingredients_lists(new_ingredients)
+    
+    w2v_model = get_Word2Vec(embedding_dim, ingredients_per_recipe)
+
+
+
+
+    
+    # use the word 2 vec model to create a data matrix and 
+    # fit a random Forest model with it
+    data_matrix =[]
+    for item in range(len(ingredients_per_recipe)):
+        sentence_vec = np.zeros(embedding_dim)
+    
+        for ingreds in ingredients_per_recipe[item]:
             sentence_vec += w2v_model.wv.__getitem__(ingreds)
-        else:
-            sentence_vec += w2v_model.wv.__getitem__(ingreds)*qts_per_recipe[item][jtem]
-    data_matrix_w.append(sentence_vec)
-data_df = pd.DataFrame(data_matrix_w)   
-X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_matrix_w,  df.dessert.values.astype(int))
+    
+        data_matrix.append(sentence_vec)
+   
+    X_train, X_test, y_train, y_test = train_test_split(data_matrix,  
+                                                    df.dessert.values.astype(int))
 
-from sklearn.ensemble import RandomForestClassifier
+    rforest = fit_RandomForest(X_train, y_train)
 
-rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
-rforest.fit(X_train_w, y_train_w)
-y_pred_train = rforest.predict(X_train)
-y_pred_test = rforest.predict(X_test)
-from sklearn.metrics import accuracy_score, confusion_matrix
-print('train accuracy: {:1.2f}'.format(accuracy_score(y_train, y_pred_train)) )
-print(confusion_matrix(y_train, y_pred_train))
-print('test accuracy: {:1.2f}'.format(accuracy_score(y_test, y_pred_test)) )
-print(confusion_matrix(y_test, y_pred_test))
+    y_pred_train = rforest.predict(X_train)
+    y_pred_test = rforest.predict(X_test)
+
+    print('train accuracy: {:1.2f}'.format(accuracy_score(y_train, y_pred_train)) )
+    print(confusion_matrix(y_train, y_pred_train))
+    print('test accuracy: {:1.2f}'.format(accuracy_score(y_test, y_pred_test)) )
+    print(confusion_matrix(y_test, y_pred_test))
+
+#=============================================================================#
+    #using word 2 vec to create the matrix, weighted by the amounts
+    data_matrix_w =[]
+    for item in range(len(ingredients_per_recipe)):
+        sentence_vec = np.zeros(embedding_dim)
+
+        for jtem, ingreds in enumerate(ingredients_per_recipe[item]):
+            if qts_per_recipe[item][jtem]==0: 
+                sentence_vec += w2v_model.wv.__getitem__(ingreds)
+            else:
+                sentence_vec += w2v_model.wv.__getitem__(ingreds)*qts_per_recipe[item][jtem]
+        data_matrix_w.append(sentence_vec)
+
+    data_df = pd.DataFrame(data_matrix_w)   
+    X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_matrix_w,  
+                                                                df.dessert.values.astype(int))
 
 
+    rforest_w = fit_RandomForest(X_train_w, y_train_w)
 
+    y_pred_train_w = rforest_w.predict(X_train_w)
+    y_pred_test_w = rforest_w.predict(X_test_w)
+    print('train accuracy: {:1.2f}'.format(accuracy_score(y_train_w, y_pred_train_w)) )
+    print(confusion_matrix(y_train_w, y_pred_train_w))
+    print('test accuracy: {:1.2f}'.format(accuracy_score(y_test_w, y_pred_test_w)) )
+    print(confusion_matrix(y_test_w, y_pred_test_w))
+
+
+    label = df.dessert.values
+    label = to_categorical(np.asarray(label))
 #=============================================================================#
 #using the word2vec as embedding
+    embedding_matrix_w2v = get_embedding_matrix(set(all_ingredients), embedding_dim, glove=0)
 
-
-        
-vec_size = embedding_dim
-w2v_model = gensim.models.Word2Vec(
-    size=vec_size,
-    window=5,
-    min_count=1,
-    workers=10,
-    alpha=0.02,
-    iter=4,
-    sg=0)
-
-w2v_model.build_vocab(ingredients_per_recipe, progress_per=1000)
-w2v_model.train(ingredients_per_recipe, total_examples=w2v_model.corpus_count,
-           epochs=20, report_delay=1)
-w2v_model.init_sims(replace=True)
-
-
-w1='pumpkin'
-# w1='rum'
-w2v_model.wv.most_similar(positive=w1, topn=10)
-unique_ingredients = set(all_ingredients)
-
-embedding_matrix_w2v = np.zeros((len(unique_ingredients), embedding_dim))
-for i,word in enumerate(unique_ingredients):
-    try:
-        embedding_vector = w2v_model.wv.__getitem__(word)
-#       embedding_vector = embedding_index.get(word)
-        if embedding_vector is not None:
-            embedding_matrix_w2v[i] = embedding_vector
-    except:
-        pass
+    w2v_rnn_model = embedding_LSTM(data, label,embedding_matrix_w2v, 
+                                     word_index, embedding_dim)
     
-embedding_layer = Embedding(len(unique_ingredients),
-                            embedding_dim,weights=[embedding_matrix_w2v],
-                            input_length=max_seq_length,
-                            trainable=False)       
+#=============================================================================#    
+# use the gloVe embeddings
+    embedding_matrix = get_embedding_matrix(word_index, embedding_dim, glove=1)
 
-inp = Input(shape=(max_seq_length,))
-x = embedding_layer(inp)
-x = Bidirectional(LSTM(embedding_dim,return_sequences=True,dropout=0.1,recurrent_dropout=0.1))(x)
-x = GlobalMaxPool1D()(x)
-x = Dense(embedding_dim,activation='relu')(x)
-x = Dropout(0.1)(x)
-x = Dense(len(categories),activation='sigmoid')(x)
-model = Model(inputs=inp,outputs=x)
-
-model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
-model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=40,batch_size=128);
-score = model.evaluate(x_val,y_val)
-print('score: {}%'.format(score[1]*100,))
-y_pred_test = model.predict(X_test)
-
-score_test = model.evaluate(X_test, y_test)
-print('test score evaluation {}%'.format(score_test[1]*100)) 
+    glove_rnn_model = embedding_LSTM(data, label,embedding_matrix, 
+                                     word_index, embedding_dim)
 
 
+    print('DONE!!!')        
+#    embedding_layer = Embedding(len(unique_ingredients),
+#                                embedding_dim,weights=[embedding_matrix_w2v],
+#                                input_length=max_seq_length,
+#                                trainable=False)       
+
+#    inp = Input(shape=(max_seq_length,))
+#    x = embedding_layer(inp)
+#    x = Bidirectional(LSTM(embedding_dim,return_sequences=True,dropout=0.1,recurrent_dropout=0.1))(x)
+#    x = GlobalMaxPool1D()(x)
+#    x = Dense(embedding_dim,activation='relu')(x)
+#    x = Dropout(0.1)(x)
+#    x = Dense(len(categories),activation='sigmoid')(x)
+#    model = Model(inputs=inp,outputs=x)
+    
+#    model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
+#    model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=40,batch_size=128);
+#    score = model.evaluate(x_val,y_val)
+#    print('score: {}%'.format(score[1]*100,))
+#    y_pred_test = model.predict(X_test)
+    
+#    score_test = model.evaluate(X_test, y_test)
+#    print('test score evaluation {}%'.format(score_test[1]*100)) 
+    
 
 
-       
-### count Vectorizer
-#============================#
-from sklearn.feature_extraction.text import CountVectorizer
-# create the transform
-vectorizer = CountVectorizer()
-# tokenize and build vocabulary
-vectorizer.fit(text)
-
-#print(vectorizer.vocabulary_)
-#encode document
-vector = vectorizer.transform(text)
-
-
+if __name__ == "__main__":
+    main()
 
 
 
