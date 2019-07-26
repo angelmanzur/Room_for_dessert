@@ -8,22 +8,14 @@ from pattern.text.en import singularize
 # open the dessert ingredients file
 
 
-raw_data = get_raw_data('sample_layer1.json')
-raw_ingredients = get_raw_ingredients('sample_det_ingrs.json')
-conv_dict = get_conversion_dictionary()
 
-
-
-item = np.random.randint(len(raw_data))
-# item = 15881
-print('item',item)
-# get a list of the ingredients from the raw recipe
-raw_ingredients = get_all_quantities(raw_data, raw_ingredients)
 
 def get_all_quantities(raw_data, raw_ingredients):
+    conv_dict = get_conversion_dictionary()
     for item in range(len(raw_data)):
-        print('item {}'.format(item))
+       # print('item {}'.format(item))
         # get a list of the ingredients
+     #   item = 19995
         recipe_ingredients_wq = raw_data[item]['ingredients']
         # get a list ot ingredient without quantities
         ingredient_list = raw_ingredients[item]['ingredients']
@@ -31,6 +23,9 @@ def get_all_quantities(raw_data, raw_ingredients):
         raw_ingredients[item]['qty'] = []
         amounts = find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict)
         #print(amounts)
+        if len(amounts) != len(ingredient_list):
+            print('problem with item',item)
+            print('\t {}. {}'.format(len(amounts),len(ingredient_list)))
         for amt in amounts:
             raw_ingredients[item]['qty'].append({'qty':amt})
 
@@ -42,11 +37,15 @@ def get_all_quantities(raw_data, raw_ingredients):
 def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
     n_ingredients = len(recipe_ingredients_wq)
     pattern = r'[0-9]?-?[0-9]?\s?[0-9]+.?'+re.escape('/')+r'?[0-9]?\s+\w+'
-    amounts = []
+    if n_ingredients==1:
+         return np.ones(n_ingredients)
+    
+    amounts = np.zeros(n_ingredients)
     for i in range(n_ingredients):  
         full_ingredient = recipe_ingredients_wq[i]['text']
         reg_ingredients = re.findall(pattern, full_ingredient)
         amount = 0 
+        
         # not exactly since some units are weight, some are volume
         # unit = 'ml' 
         if len(reg_ingredients)>0:
@@ -91,11 +90,12 @@ def find_amounts(recipe_ingredients_wq,ingredient_list,conv_dict):
                         if len(fraction)==2:
                             amount = (number + int(fraction[0])/int(fraction[1]))*convert_to_ml(entries[2], conv_dict)
             except:
-                amount = 0 
-            amounts.append(np.abs(amount))
-       
+                amount = 0
+                
+            amounts[i] = np.abs(amount)
+            #amounts.append(np.abs(amount))    
             #print(' amount {:1.2f} ml'.format(amount))
-
+    
     qts = np.array(amounts)/np.sum(amounts)
     return qts
 
@@ -178,4 +178,14 @@ def convert_to_ml(unit, conversion):
 
     return qty_ml
 
+
+
         
+#raw_data = get_raw_data('sample_layer1.json')
+#raw_ingredients = get_raw_ingredients('sample_det_ingrs.json')
+
+#item = np.random.randint(len(raw_data))
+# item = 15881
+#print('item',item)
+# get a list of the ingredients from the raw recipe
+#raw_ingredients = get_all_quantities(raw_data, raw_ingredients)

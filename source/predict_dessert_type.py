@@ -45,6 +45,7 @@ def classify_desserts(recipes, recipe_ingredients):
     n_classified =0
     new_recipe_list = []
     new_recipe_ingredients = []
+    new_ingredients = []
     category_list = []
     for item, recipe in enumerate(recipes):
         title = recipe['title']
@@ -56,9 +57,11 @@ def classify_desserts(recipes, recipe_ingredients):
                 recipe['type'] = category
                 new_recipe_list.append(recipe)
                 all_ingredients = ''
-                for ingredient in recipe_ingredients[item]['ingredients']:
-                    all_ingredients += ingredient['text'] + ' '
+                for ipos, ingredient in enumerate(recipe_ingredients[item]['ingredients']):
+                    if recipe_ingredients[item]['valid'][ipos]:
+                        all_ingredients += ingredient['text'] + ' '
                 new_recipe_ingredients.append(all_ingredients)
+                new_ingredients.append(recipe_ingredients[item])
                 category_list.append(categories.index(category))
                 break
                   
@@ -66,12 +69,33 @@ def classify_desserts(recipes, recipe_ingredients):
         if n_recipes%1000==0:
             logging.info("read {0} recipes".format(n_recipes))
 #             break
-    return new_recipe_list, new_recipe_ingredients, category_list
+    return new_recipe_list, new_recipe_ingredients,new_ingredients, category_list
 
 
 
 
 #=============================================================================#
+def sequence_data_w2v(text, ndim=100):
+    """
+    Get the word index and the pad_sequences from keras
+    """
+    from keras.preprocessing.text import Tokenizer
+    from keras.preprocessing.sequence import pad_sequences
+    import spacy
+    
+#    max_num_words= 1000
+#    max_seq_length = 100
+    tokenizer = Tokenizer(num_words = max_num_words)    
+
+    tokenizer.fit_on_texts(text)
+    sequences = tokenizer.texts_to_sequences(text)
+    word_index = tokenizer.word_index    
+
+    data = pad_sequences(sequences, maxlen=max_seq_length)#,padding='post')
+
+    return data, word_index
+
+
 def sequence_data(text, ndim=100):
     """
     Get the word index and the pad_sequences from keras
@@ -80,15 +104,15 @@ def sequence_data(text, ndim=100):
     from keras.preprocessing.sequence import pad_sequences
     import spacy
     
-    max_num_words= 1000
-    max_seq_length = 100
+#    max_num_words= 1000
+#    max_seq_length = 100
     tokenizer = Tokenizer(num_words = max_num_words)    
 
     tokenizer.fit_on_texts(text)
     sequences = tokenizer.texts_to_sequences(text)
     word_index = tokenizer.word_index    
 
-    data = pad_sequences(sequences, maxlen=max_seq_length)
+    data = pad_sequences(sequences, maxlen=max_seq_length)#,padding='post')
 
     return data, word_index
 
@@ -187,16 +211,13 @@ def clean_dessert_ingredients(all_ingredients):
             elif re.match('oil', tmp_ingredient):
                 to_remove.append(ingr_item)
 
-                        
-            
             if re.search('heavy', tmp_ingredient) and re.search('cream',tmp_ingredient):
                 tmp_ingredient='heavy cream'
             
             generic_ingr, ingr = is_generic_ingredient(tmp_ingredient)
             if generic_ingr:
                 tmp_ingredient = ingr
-
-                
+              
 #             elif (re.search('purpose flour', tmp_ingredient) 
 #                   or re.search('cake flour',tmp_ingredient) 
 #                   or re.search('rising flour', tmp_ingredient) 
@@ -228,12 +249,18 @@ def clean_dessert_ingredients(all_ingredients):
         if len(to_remove)>0:
             
             to_remove.sort(reverse=True)
-            
-                
+                           
 #             print(item,'to remove', to_remove)
-            for i in to_remove:
-#                 print('try to remove', all_ingredients[item]['ingredients'][i])
-                del all_ingredients[item]['ingredients'][i]
+            try:
+                for i in to_remove:
+                    #print('try to remove',i, all_ingredients[item]['ingredients'][i],all_ingredients[item]['qty'][i])
+                    #del all_ingredients[item]['ingredients'][i]
+                    #del all_ingredients[item]['qty'][i]
+                    all_ingredients[item]['valid'][i] = False
+                    
+            except:
+                print(to_remove, all_ingredients[item])
+                input()
 #         for iremove in to_remove:
 #             del all_ingredients
 #         print('--------------------------')
@@ -270,13 +297,14 @@ dessert_ingredients = len(dessert_ings)
 print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
                             dessert_recipes, total_recipes,
                             dessert_recipes/total_recipes*100))
-
-
+del raw_data
+del raw_ingredients
+dessert_ings = get_all_quantities(desserts, dessert_ings)
 clean_ingredients =  clean_dessert_ingredients(dessert_ings);
 
 #classify the recipes
 #new_data, new_data_ings, target = classify_desserts(desserts,dessert_ings)
-new_data, new_data_ings, target = classify_desserts(desserts, clean_ingredients)
+new_data, new_data_ings, new_ingredients, target = classify_desserts(desserts, clean_ingredients)
 print('classified {0}/{1}'.format(len(new_data),len(new_data_ings)))
 
 # set the data into a pandas dataframe
@@ -285,6 +313,8 @@ df = pd.DataFrame([new_data_ings,target]).T
 df.columns = ['ingredients','dessert']
 #df['dessert'] = np.where(df['dessert']=='cake', 1, 0)
 
+max_num_words= 1000
+max_seq_length = 100
 # get the test and the labels
 text = df.ingredients.values
 label = df.dessert.values
@@ -301,10 +331,6 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(data, label)
 x_train, x_val, y_train, y_val = train_val_split(X_train, y_train)
 
-
-# get the glove data, 
-
-
 # create an empty matrix based on gloVe embeddings
 embedding_dim = 50
 embedding_index = get_glove_embeddings(embedding_dim)
@@ -319,7 +345,8 @@ for word,i in word_index.items():
         
 from keras.layers import Embedding
 embedding_layer = Embedding(len(word_index)+1,
-                            embedding_dim,weights=[embedding_matrix],
+                            embedding_dim,
+                            weights=[embedding_matrix],
                             input_length=max_seq_length,
                             trainable=False)
 
@@ -349,24 +376,87 @@ print('test score evaluation {}%'.format(score_test[1]*100))
 
 
 #=============================================================================#
-#using the word2vec as embedding
-
+#using word 2 vec to create the matrix
 ingredients_per_recipe = []
+qts_per_recipe = []
 all_ingredients = []
         
 count =0
-for drecipe in clean_ingredients:
+for drecipe in new_ingredients:
     ings =[]
-    for entry in drecipe['ingredients']:
-        ings.append(entry['text'])
-        all_ingredients.append(entry['text'])
+    qts = []
+    for ipos, entry in enumerate(drecipe['ingredients']):
+        if drecipe['valid'][ipos]:
+            ings.append(entry['text'])
+            all_ingredients.append(entry['text'])
+            qts.append(drecipe['qty'][ipos]['qty'])
     ingredients_per_recipe.append(ings)
+    qts_per_recipe.append(qts)
     count += 1
     if count%500==0:
         logging.info("read {0} ingredients".format(count))
+
+data_matrix =[]
+for item in range(len(ingredients_per_recipe)):
+    sentence_vec = np.zeros(embedding_dim)
+
+    for ingreds in ingredients_per_recipe[item]:
+        sentence_vec += w2v_model.wv.__getitem__(ingreds)
+
+    data_matrix.append(sentence_vec)
+   
+X_train, X_test, y_train, y_test = train_test_split(data_matrix,  df.dessert.values.astype(int))
+
+from sklearn.ensemble import RandomForestClassifier
+
+rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
+rforest.fit(X_train, y_train)
+y_pred_train = rforest.predict(X_train)
+y_pred_test = rforest.predict(X_test)
+from sklearn.metrics import accuracy_score, confusion_matrix
+print('train accuracy: {:1.2f}'.format(accuracy_score(y_train, y_pred_train)) )
+print(confusion_matrix(y_train, y_pred_train))
+print('test accuracy: {:1.2f}'.format(accuracy_score(y_test, y_pred_test)) )
+print(confusion_matrix(y_test, y_pred_test))
+
+
+#=============================================================================#
+#using word 2 vec to create the matrix, weighted by the amounts
+
+data_matrix_w =[]
+for item in range(len(ingredients_per_recipe)):
+    sentence_vec = np.zeros(embedding_dim)
+
+    for jtem, ingreds in enumerate(ingredients_per_recipe[item]):
+        if qts_per_recipe[item][jtem] is np.nan:
+            sentence_vec += w2v_model.wv.__getitem__(ingreds)
+        else:
+            sentence_vec += w2v_model.wv.__getitem__(ingreds)*qts_per_recipe[item][jtem]
+    data_matrix_w.append(sentence_vec)
+   
+X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_matrix_w,  df.dessert.values.astype(int))
+
+from sklearn.ensemble import RandomForestClassifier
+
+rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
+rforest.fit(X_train_w, y_train_w)
+y_pred_train = rforest.predict(X_train)
+y_pred_test = rforest.predict(X_test)
+from sklearn.metrics import accuracy_score, confusion_matrix
+print('train accuracy: {:1.2f}'.format(accuracy_score(y_train, y_pred_train)) )
+print(confusion_matrix(y_train, y_pred_train))
+print('test accuracy: {:1.2f}'.format(accuracy_score(y_test, y_pred_test)) )
+print(confusion_matrix(y_test, y_pred_test))
+
+
+
+#=============================================================================#
+#using the word2vec as embedding
+
+
         
 vec_size = embedding_dim
-model = gensim.models.Word2Vec(
+w2v_model = gensim.models.Word2Vec(
     size=vec_size,
     window=5,
     min_count=1,
@@ -375,25 +465,28 @@ model = gensim.models.Word2Vec(
     iter=4,
     sg=0)
 
-model.build_vocab(ingredients_per_recipe, progress_per=1000)
-model.train(ingredients_per_recipe, total_examples=model.corpus_count,
-           epochs=40, report_delay=1)
-model.init_sims(replace=True)
+w2v_model.build_vocab(ingredients_per_recipe, progress_per=1000)
+w2v_model.train(ingredients_per_recipe, total_examples=w2v_model.corpus_count,
+           epochs=20, report_delay=1)
+w2v_model.init_sims(replace=True)
 
 
 w1='pumpkin'
 # w1='rum'
-model.wv.most_similar(positive=w1, topn=10)
+w2v_model.wv.most_similar(positive=w1, topn=10)
 unique_ingredients = set(all_ingredients)
 
 embedding_matrix_w2v = np.zeros((len(unique_ingredients), embedding_dim))
 for i,word in enumerate(unique_ingredients):
-    embedding_vector = model.wv.__getitem__(word)
-#    embedding_vector = embedding_index.get(word)
-    if embedding_vector is not None:
-        embedding_matrix_w2v[i] = embedding_vector
-        
- embedding_layer = Embedding(len(unique_ingredients),
+    try:
+        embedding_vector = w2v_model.wv.__getitem__(word)
+#       embedding_vector = embedding_index.get(word)
+        if embedding_vector is not None:
+            embedding_matrix_w2v[i] = embedding_vector
+    except:
+        pass
+    
+embedding_layer = Embedding(len(unique_ingredients),
                             embedding_dim,weights=[embedding_matrix_w2v],
                             input_length=max_seq_length,
                             trainable=False)       
@@ -414,7 +507,12 @@ print('score: {}%'.format(score[1]*100,))
 y_pred_test = model.predict(X_test)
 
 score_test = model.evaluate(X_test, y_test)
-print('test score evaluation {}%'.format(score_test[1]*100))        
+print('test score evaluation {}%'.format(score_test[1]*100)) 
+
+
+
+
+       
 ### count Vectorizer
 #============================#
 from sklearn.feature_extraction.text import CountVectorizer
