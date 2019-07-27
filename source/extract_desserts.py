@@ -20,7 +20,6 @@ def get_raw_data(filename='sample_layer1.json'):
     """
     data_dir = '../data/'
     file_path = data_dir + filename
-    file_path = data_dir + filename
     print('Loading file ', file_path)
     with open(file_path,'r') as file:
         raw_data = json.load(file)
@@ -122,7 +121,7 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
     # print(non_dessert_ingredients)
     for item,recipe in enumerate(all_recipes):
         
-        if item%500==0:
+        if item%2500==0:
             logging.info("read {0} recipes".format(item))
             
         #get the title and convert it into a list
@@ -169,5 +168,45 @@ def find_desserts(all_recipes, all_ingredients, test_id='000'):
     
     return dessert_list, ingredient_list
 
-   
+#=============================================================================#
+#classify the desserts
+#categories = ['cake', 'cookies', 'pie','bread','cupcake','candy', 'pudding','custard']
+categories = ['cake', 'cookies', 'pie', 'pudding']
+def classify_desserts(recipes, recipe_ingredients):
+    """
+    get the recipes and the ingredients for the recipes, and based on the title, 
+    classify the recipes as one of the items in categories
+    If the function can't determine the recipe, it will be ignored
+    
+    Output:
+        recipes_list, ingredients_list, categories for recipes_list
+    """
+    n_recipes = 0
+    n_classified =0
+    new_recipe_list = []
+    new_recipe_ingredients = []
+    new_ingredients = []
+    category_list = []
+    for item, recipe in enumerate(recipes):
+        title = recipe['title']
+        title = title.lower().split(' ')
+        for category in categories:
+            if category in title:
+#                 print(category)
+                n_classified +=1
+                recipe['type'] = category
+                new_recipe_list.append(recipe)
+                all_ingredients = ''
+                for ipos, ingredient in enumerate(recipe_ingredients[item]['ingredients']):
+                    if recipe_ingredients[item]['valid'][ipos]:
+                        all_ingredients += ingredient['text'] + ' '
+                new_recipe_ingredients.append(all_ingredients)
+                new_ingredients.append(recipe_ingredients[item])
+                category_list.append(categories.index(category))
+                break
+                  
+        n_recipes += 1
+        if n_recipes%1000==0:
+            logging.info("read {0} recipes".format(n_recipes))
+    return new_recipe_list, new_recipe_ingredients,new_ingredients, category_list  
 

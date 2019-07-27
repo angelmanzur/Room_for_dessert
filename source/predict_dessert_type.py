@@ -12,7 +12,9 @@ from nltk import FreqDist
 import matplotlib.pyplot as plt
 import numpy as np
 np.random.seed(seed=2019)
+import pickle
 
+import json
 import re
 import gensim
 import pandas as pd
@@ -20,8 +22,8 @@ import pandas as pd
 #some keras packages
 from keras.utils import to_categorical
 from keras.layers import Embedding
-from keras.layers import Bidirectional,GlobalMaxPool1D,Conv1D
-from keras.layers import LSTM,Input,Dense,Dropout,Activation
+from keras.layers import Bidirectional,GlobalMaxPool1D
+from keras.layers import LSTM,Input,Dense,Dropout
 from keras.models import Model
 
 # some sklearn packages
@@ -35,47 +37,6 @@ warnings.filterwarnings('ignore')
 max_num_words= 1000
 max_seq_length = 100
 # print the categories
-categories = ['cake', 'cookies', 'pie','bread','cupcake','candy', 'pudding','custard']
-categories = ['cake', 'cookies', 'pie', 'pudding']
-#=============================================================================#
-#classify the desserts
-def classify_desserts(recipes, recipe_ingredients):
-    """
-    get the recipes and the ingredients for the recipes, and based on the title, 
-    classify the recipes as one of the items in categories
-    If the function can't determine the recipe, it will be ignored
-    
-    Output:
-        recipes_list, ingredients_list, categories for recipes_list
-    """
-    n_recipes = 0
-    n_classified =0
-    new_recipe_list = []
-    new_recipe_ingredients = []
-    new_ingredients = []
-    category_list = []
-    for item, recipe in enumerate(recipes):
-        title = recipe['title']
-        title = title.lower().split(' ')
-        for category in categories:
-            if category in title:
-#                 print(category)
-                n_classified +=1
-                recipe['type'] = category
-                new_recipe_list.append(recipe)
-                all_ingredients = ''
-                for ipos, ingredient in enumerate(recipe_ingredients[item]['ingredients']):
-                    if recipe_ingredients[item]['valid'][ipos]:
-                        all_ingredients += ingredient['text'] + ' '
-                new_recipe_ingredients.append(all_ingredients)
-                new_ingredients.append(recipe_ingredients[item])
-                category_list.append(categories.index(category))
-                break
-                  
-        n_recipes += 1
-        if n_recipes%1000==0:
-            logging.info("read {0} recipes".format(n_recipes))
-    return new_recipe_list, new_recipe_ingredients,new_ingredients, category_list
 
 #=============================================================================#
 def sequence_data_w2v(text, ndim=50):
@@ -84,7 +45,6 @@ def sequence_data_w2v(text, ndim=50):
     """
     from keras.preprocessing.text import Tokenizer
     from keras.preprocessing.sequence import pad_sequences
-    import spacy
     
     tokenizer = Tokenizer(num_words = max_num_words)    
 
@@ -103,7 +63,7 @@ def sequence_data(text, ndim=50):
     """
     from keras.preprocessing.text import Tokenizer
     from keras.preprocessing.sequence import pad_sequences
-    import spacy
+
     
     tokenizer = Tokenizer(num_words = max_num_words)    
 
@@ -470,29 +430,49 @@ def fit_RandomForest(X_train, y_train):
 def main():
     logging.info('Start by getting some data! ')
 
-    raw_data = get_raw_data('sample_50k_layer1.json')
-    raw_ingredients = get_raw_ingredients('sample_50k_det_ingrs.json')
+#    raw_data = get_raw_data('sample_50k_layer1.json')
+ #   raw_ingredients = get_raw_ingredients('sample_50k_det_ingrs.json')
 
     #get the desserts
-    logging.info('extract the desserts from it')
-    desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)#
+#    logging.info('extract the desserts from it')
+#    desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)#
 
 
-    total_recipes = len(raw_data)
-    dessert_recipes = len(desserts)
-    dessert_ingredients = len(dessert_ings)
-    print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
-                            dessert_recipes, total_recipes,
-                            dessert_recipes/total_recipes*100))
-    del raw_data, raw_ingredients #clear some memory
+#    total_recipes = len(raw_data)
+#    dessert_recipes = len(desserts)
+#    dessert_ingredients = len(dessert_ings)
+#    print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
+#                            dessert_recipes, total_recipes,
+#                            dessert_recipes/total_recipes*100))
+#    del raw_data, raw_ingredients #clear some memory
     
     #get the amounts for each dessert
-    dessert_ings = get_all_quantities(desserts, dessert_ings)
-    clean_ingredients =  clean_dessert_ingredients(dessert_ings);
+#    dessert_ings = get_all_quantities(desserts, dessert_ings)
+#    clean_ingredients =  clean_dessert_ingredients(dessert_ings);
 
     #classify the recipes
     #do not use the ones we cannot identify
-    new_data, new_data_ings, new_ingredients, target = classify_desserts(desserts, clean_ingredients)
+ #   new_data, new_data_ings, new_ingredients, target = classify_desserts(desserts, clean_ingredients)
+
+    # Get the cleaned and merged data
+    print('Reading full reicpes')
+    data_file = '../data/Merged_Recipe.json'
+    with open(data_file, 'r') as file:
+        new_data = json.load(file)
+
+    data_file = '../data/Merged_Ingredients_only.json'
+    with open(data_file, 'r') as file:
+        new_data_ings = json.load(file)
+
+
+    data_file = '../data/Merged_Recipe_Ingredients.json'
+    with open(data_file, 'r') as file:
+        new_ingredients = json.load(file)
+        
+    data_file = '../data/Merged_Target.json'
+    with open(data_file, 'r') as file:
+        target = json.load(file)    
+
     print('classified {0}/{1}'.format(len(new_data),len(new_data_ings)))
 
     # set the data into a pandas dataframe to handle the data
@@ -518,7 +498,8 @@ def main():
 
 
 
-
+    filename = '../models/w2vec_model.pkl'
+    pickle.dump(w2v_model, open(filename, 'wb'))
     
     # use the word 2 vec model to create a data matrix and 
     # fit a random Forest model with it
@@ -536,6 +517,9 @@ def main():
 
     rforest = fit_RandomForest(X_train, y_train)
 
+    filename = '../models/forest_w2vec_model.pkl'
+    pickle.dump(rforest, open(filename, 'wb'))
+    
     y_pred_train = rforest.predict(X_train)
     y_pred_test = rforest.predict(X_test)
 
@@ -573,6 +557,8 @@ def main():
     print('test accuracy: {:1.2f}'.format(accuracy_score(y_test_w, y_pred_test_w)) )
     print(confusion_matrix(y_test_w, y_pred_test_w))
 
+    filename = '../models/forest_w2vec_weighted_model.pkl'
+    pickle.dump(rforest_w, open(filename, 'wb'))
 
     label = df.dessert.values
     label = to_categorical(np.asarray(label))
@@ -584,6 +570,9 @@ def main():
     w2v_rnn_model = embedding_LSTM(data, label,embedding_matrix_w2v, 
                                      unique_ingredients, embedding_dim, 0)
     
+
+    filename = '../models/rnn_w2vec_model.pkl'
+    pickle.dump(w2v_rnn_model, open(filename, 'wb'))
 #=============================================================================#    
 # use the gloVe embeddings
     embedding_matrix = get_glove_embedding_matrix(word_index, embedding_dim)
@@ -591,14 +580,16 @@ def main():
     glove_rnn_model = embedding_LSTM(data, label,embedding_matrix, 
                                      word_index, embedding_dim,1)
 
-    
+    filename = '../models/rnn_glove_model.pkl'
+    pickle.dump(glove_rnn_model, open(filename, 'wb'))
 #=============================================================================#    
 # finally test with a random embedding matrix
     embedding_rand_matrix = get_random_embedding_matrix(word_index, embedding_dim)
     random_rnn_model = embedding_LSTM(data, label,embedding_rand_matrix, 
                                      word_index, embedding_dim,1,trainable=True)
     
-    
+    filename = '../models/rnn_trainable_model.pkl'
+    pickle.dump(random_rnn_model, open(filename, 'wb'))
 
     print('DONE!!!')        
 #    embedding_layer = Embedding(len(unique_ingredients),
