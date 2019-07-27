@@ -5,7 +5,6 @@ Created on Wed Jul 24 14:50:57 2019
 
 @author: angelmanzur
 """
-
 from extract_desserts import *
 from get_quantities import *
 from pattern.text.en import singularize
@@ -76,14 +75,10 @@ def classify_desserts(recipes, recipe_ingredients):
         n_recipes += 1
         if n_recipes%1000==0:
             logging.info("read {0} recipes".format(n_recipes))
-#             break
     return new_recipe_list, new_recipe_ingredients,new_ingredients, category_list
 
-
-
-
 #=============================================================================#
-def sequence_data_w2v(text, ndim=100):
+def sequence_data_w2v(text, ndim=50):
     """
     Get the word index and the pad_sequences from keras
     """
@@ -91,8 +86,6 @@ def sequence_data_w2v(text, ndim=100):
     from keras.preprocessing.sequence import pad_sequences
     import spacy
     
-#    max_num_words= 1000
-#    max_seq_length = 100
     tokenizer = Tokenizer(num_words = max_num_words)    
 
     tokenizer.fit_on_texts(text)
@@ -104,7 +97,7 @@ def sequence_data_w2v(text, ndim=100):
     return data, word_index
 
 
-def sequence_data(text, ndim=100):
+def sequence_data(text, ndim=50):
     """
     Get the word index and the pad_sequences from keras
     """
@@ -112,8 +105,6 @@ def sequence_data(text, ndim=100):
     from keras.preprocessing.sequence import pad_sequences
     import spacy
     
-#    max_num_words= 1000
-#    max_seq_length = 100
     tokenizer = Tokenizer(num_words = max_num_words)    
 
     tokenizer.fit_on_texts(text)
@@ -123,7 +114,6 @@ def sequence_data(text, ndim=100):
     data = pad_sequences(sequences, maxlen=max_seq_length)#,padding='post')
 
     return data, word_index
-
 
 #=============================================================================#
 def train_val_split(data, label, vsplit=0.20):
@@ -172,8 +162,7 @@ def get_glove_embeddings(ndim=50):
     return embedding_index
 #=======================================================================#
  
-
-
+# these ingredients are not a flavor, so let's not include them 
 not_a_flavor_list = ['flour','cake mix','baking soda','baking powder', 
                      'canola oil','vegetable oil','cornstarch','shortening',
                      'margarine','yeast','gelatin' ,'coloring',
@@ -188,6 +177,12 @@ generic_ingredient_list = ['pumpkin', 'vanilla','cinnammon','cocoa powder',
                           'salted butter','coffee']
 #=========================================================================# 
 def in_not_a_flavor_list(ingredient):
+    """
+    Return true if ingredient is in not_a_flavor_list 
+    Output:
+        Boolean
+    """
+    
     for word in not_a_flavor_list:
         if re.search(word, ingredient):
             return True   
@@ -195,6 +190,11 @@ def in_not_a_flavor_list(ingredient):
 
 #=========================================================================# 
 def is_generic_ingredient(ingredient):
+    """
+    Find if ingreditn is in the generic_ingredient_list
+    Output:
+        Boolean
+    """
     for word in generic_ingredient_list:
 #         print(word,ingredient)
         if re.search(word, ingredient):
@@ -202,6 +202,17 @@ def is_generic_ingredient(ingredient):
     return False, ingredient
 #=========================================================================# 
 def clean_dessert_ingredients(all_ingredients):
+    """
+    Clean the ingredients, following several rules:
+        lowercase the words, singularize, strip extra spaces. 
+        And combine ingredeints, for examples light brown sugar and demerara sugar -> brown sugar
+        If an ingredient is not a flavor, it is set to False in the list.
+        
+    Input:
+        ingredient list
+    Output:
+        ingredient list after cleaning the ingredients. 
+    """
     count =0
     for item, ingredients_list in enumerate(all_ingredients):
         to_remove = []
@@ -210,9 +221,7 @@ def clean_dessert_ingredients(all_ingredients):
             tmp_ingredient = tmp_ingredient.replace("'",'')
             tmp_ingredient = tmp_ingredient.replace(" & ",'&')
             tmp_ingredient = tmp_ingredient.replace('fat free', 'fat-free')
-#             tmp_ingredient = singularize(tmp_ingredient)
-            
-#             print(ingredient['text'].replace(' - ','-'))
+
             if re.search('water', tmp_ingredient) and not re.search('watermelon',tmp_ingredient) and not re.search('rose water',tmp_ingredient):
                 to_remove.append(ingr_item)
             
@@ -228,15 +237,6 @@ def clean_dessert_ingredients(all_ingredients):
             if generic_ingr:
                 tmp_ingredient = ingr
               
-#             elif (re.search('purpose flour', tmp_ingredient) 
-#                   or re.search('cake flour',tmp_ingredient) 
-#                   or re.search('rising flour', tmp_ingredient) 
-#                   or re.search('plain flour', tmp_ingredient)
-#                   or re.search('white flour', tmp_ingredient)
-#                   or re.search('raising flour', tmp_ingredient)
-
-#                  ):
-#                 tmp_ingredient = 'flour' 
             elif re.search('brown sugar', tmp_ingredient) or re.search('demerara sugar', tmp_ingredient):
                 tmp_ingredient = 'brown sugar'
             
@@ -253,46 +253,43 @@ def clean_dessert_ingredients(all_ingredients):
                 and not re.search('oats',tmp_ingredient)):
                 tmp_ingredient = singularize(tmp_ingredient)
 
-
             all_ingredients[item]['ingredients'][ingr_item]['text'] = tmp_ingredient
             
         if len(to_remove)>0:
             
             to_remove.sort(reverse=True)
                            
-#             print(item,'to remove', to_remove)
             try:
                 for i in to_remove:
-                    #print('try to remove',i, all_ingredients[item]['ingredients'][i],all_ingredients[item]['qty'][i])
-                    #del all_ingredients[item]['ingredients'][i]
-                    #del all_ingredients[item]['qty'][i]
                     all_ingredients[item]['valid'][i] = False
                     
             except:
                 print(to_remove, all_ingredients[item])
                 input()
-#         for iremove in to_remove:
-#             del all_ingredients
-#         print('--------------------------')
-        if item%500==0:
+
+        if item%1000==0:
             logging.info("read {0} recipes".format(item))
     return all_ingredients
+
 #=========================================================================# 
 def print_dessert_ingredients(all_ingredients):
     count =0
     for item, ingredients_list in enumerate(all_ingredients):
-        for ingr_item, ingredient in enumerate(ingredients_list['ingredients']):
-            
-            
-            print(ingredient['text'])
-        
+        for ingr_item, ingredient in enumerate(ingredients_list['ingredients']):         
+            print(ingredient['text'])        
         print('--------------------------')
         if item==50:
             break
     return all_ingredients
 #=========================================================================# 
 def get_glove_embedding_matrix(word_index, dimension):
-    
+    """
+    Get the embedding matrix using gloVe
+    Input:
+        word index, dimension = (50,100,200,300)
+    Output:
+        embedding matrix
+    """
     embedding_dim = dimension
    
     embedding_index = get_glove_embeddings(embedding_dim)
@@ -304,10 +301,36 @@ def get_glove_embedding_matrix(word_index, dimension):
         if embedding_vector is not None:
             embedding_matrix[i] = embedding_vector
     return embedding_matrix
+#=========================================================================# 
+def get_random_embedding_matrix(word_index, dimension):
+    """
+    Get the embedding matrix using random numbers
+    Input:
+        word index, dimension = (50,100,200,300)
+    Output:
+        embedding matrix
+    """
+    embedding_dim = dimension
    
+ #   embedding_index = get_glove_embeddings(embedding_dim)
+ 
+    embedding_matrix = np.zeros((len(word_index)+1, embedding_dim))    
+
+    for word,i in word_index.items():
+        embedding_vector = np.random.rand(dimension)
+        if embedding_vector is not None:
+            embedding_matrix[i] = embedding_vector
+    return embedding_matrix  
+ 
 #=========================================================================# 
 def get_w2v_embedding_matrix(word_index, dimension, w2v_model):
-    
+    """
+    Get the embedding matrix using the word2vec model passed
+    Input:
+        word index, dimension = (50,100,200,300), word2vec model
+    Output:
+        embedding matrix
+    """
     embedding_dim = dimension
 
     embedding_matrix_w2v = np.zeros((len(word_index), embedding_dim))
@@ -322,12 +345,19 @@ def get_w2v_embedding_matrix(word_index, dimension, w2v_model):
     return embedding_matrix_w2v
 
 #=========================================================================# 
-def embedding_LSTM(data, label, embedding_matrix, w_index, dimension, extra_dim):    
-    
+def embedding_LSTM(data, label, embedding_matrix, word_index, dimension, extra_dim, trainable=False):    
+    """
+    Run an LSTM model on the data with target: label, using passed embedding_matrix
+    Input:
+        data, label, embedding_matrix, word_index, dimension, extra_dim=0,1 if 
+        word_index a list, or a dictionary)
+    Output:
+        the Rnn model
+    """
     X_train, X_test, y_train, y_test = train_test_split(data, label)
     x_train, x_val, y_train, y_val = train_val_split(X_train, y_train)
     
-    word_index = w_index
+    word_index = word_index
 
     # using the gloVe embeddings
 
@@ -336,7 +366,7 @@ def embedding_LSTM(data, label, embedding_matrix, w_index, dimension, extra_dim)
                             embedding_dim,
                             weights=[embedding_matrix],
                             input_length=max_seq_length,
-                            trainable=False)
+                            trainable=trainable)
 
 
     inp = Input(shape=(max_seq_length,))
@@ -359,7 +389,14 @@ def embedding_LSTM(data, label, embedding_matrix, w_index, dimension, extra_dim)
 
     return rnn_model, x_train, y_train, x_val, y_val, X_test, y_test
 #=========================================================================#  
-def get_Word2Vec(dimension, ingredients_per_recipe):        
+def get_Word2Vec(dimension, ingredients_per_recipe): 
+    """
+    Fit a word2vec model based on the documents passed.
+    /input:
+        List of documents
+    Output:
+        word2vec model
+    """
     vec_size = dimension
     w2v_model = gensim.models.Word2Vec(
             size=vec_size,
@@ -383,7 +420,15 @@ def get_Word2Vec(dimension, ingredients_per_recipe):
     
     return w2v_model    
 #=========================================================================# 
-def get_ingredients_lists(new_ingredients):        
+def get_ingredients_lists(new_ingredients): 
+    """
+    Get the recipes and retur the ingredients and quantities
+    Input:
+           List of recipes
+    Output:
+        List of ingredients per recipes, quantities of ingredients,
+        list with all the ingredients
+    """       
     count =0
     ingredients_per_recipe = []
     qts_per_recipe = []
@@ -404,7 +449,14 @@ def get_ingredients_lists(new_ingredients):
     return ingredients_per_recipe, qts_per_recipe, all_ingredients
 #=========================================================================# 
 def fit_RandomForest(X_train, y_train):
-    
+    """
+    Fit a RandomForestClassifier using X_train and y_train
+    Input:
+        X_train data  and y_train labels
+    Outpu:
+        randomforest classifier
+        
+    """
     rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
     rforest.fit(X_train, y_train)
     
@@ -418,8 +470,8 @@ def fit_RandomForest(X_train, y_train):
 def main():
     logging.info('Start by getting some data! ')
 
-    raw_data = get_raw_data('sample_layer1.json')
-    raw_ingredients = get_raw_ingredients('sample_det_ingrs.json')
+    raw_data = get_raw_data('sample_50k_layer1.json')
+    raw_ingredients = get_raw_ingredients('sample_50k_det_ingrs.json')
 
     #get the desserts
     logging.info('extract the desserts from it')
@@ -505,9 +557,11 @@ def main():
                 sentence_vec += w2v_model.wv.__getitem__(ingreds)*qts_per_recipe[item][jtem]
         data_matrix_w.append(sentence_vec)
 
-    data_df = pd.DataFrame(data_matrix_w)   
-    X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_matrix_w,  
-                                                                df.dessert.values.astype(int))
+    data_df = pd.DataFrame(data_matrix_w) 
+    data_df['target'] = df.dessert.values.astype(int)
+    data_df = data_df.dropna()
+    X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_df,  
+                                                                data_df['target'])
 
 
     rforest_w = fit_RandomForest(X_train_w, y_train_w)
@@ -537,6 +591,14 @@ def main():
     glove_rnn_model = embedding_LSTM(data, label,embedding_matrix, 
                                      word_index, embedding_dim,1)
 
+    
+#=============================================================================#    
+# finally test with a random embedding matrix
+    embedding_rand_matrix = get_random_embedding_matrix(word_index, embedding_dim)
+    random_rnn_model = embedding_LSTM(data, label,embedding_rand_matrix, 
+                                     word_index, embedding_dim,1,trainable=True)
+    
+    
 
     print('DONE!!!')        
 #    embedding_layer = Embedding(len(unique_ingredients),
