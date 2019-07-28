@@ -39,7 +39,7 @@ def clean_main():
     new_ingredients = []
     target = []
 #    for i in range(nfiles):
-    for i in range(2):
+    for i in range(5):
         #full data
         fullname = 'full_recipes/sample_layer1_{}.json'.format(i)
         print(fullname)
