@@ -417,7 +417,7 @@ def fit_RandomForest(X_train, y_train):
         randomforest classifier
         
     """
-    rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)
+    rforest = RandomForestClassifier(max_depth=10, min_samples_split=10)#, max_features=50)
     rforest.fit(X_train, y_train)
     
     return rforest    
@@ -427,32 +427,9 @@ def fit_RandomForest(X_train, y_train):
     
 #=========================================================================#
 #load the data
-def main():
+def main(save_models=False):
     logging.info('Start by getting some data! ')
 
-#    raw_data = get_raw_data('sample_50k_layer1.json')
- #   raw_ingredients = get_raw_ingredients('sample_50k_det_ingrs.json')
-
-    #get the desserts
-#    logging.info('extract the desserts from it')
-#    desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)#
-
-
-#    total_recipes = len(raw_data)
-#    dessert_recipes = len(desserts)
-#    dessert_ingredients = len(dessert_ings)
-#    print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
-#                            dessert_recipes, total_recipes,
-#                            dessert_recipes/total_recipes*100))
-#    del raw_data, raw_ingredients #clear some memory
-    
-    #get the amounts for each dessert
-#    dessert_ings = get_all_quantities(desserts, dessert_ings)
-#    clean_ingredients =  clean_dessert_ingredients(dessert_ings);
-
-    #classify the recipes
-    #do not use the ones we cannot identify
- #   new_data, new_data_ings, new_ingredients, target = classify_desserts(desserts, clean_ingredients)
 
     # Get the cleaned and merged data
     print('Reading full reicpes')
@@ -497,9 +474,9 @@ def main():
     w2v_model = get_Word2Vec(embedding_dim, ingredients_per_recipe)
 
 
-
-    filename = '../models/w2vec_model.pkl'
-    pickle.dump(w2v_model, open(filename, 'wb'))
+    if save_models:
+        filename = '../models/w2vec_model.pkl'
+        pickle.dump(w2v_model, open(filename, 'wb'))
     
     # use the word 2 vec model to create a data matrix and 
     # fit a random Forest model with it
@@ -517,8 +494,18 @@ def main():
 
     rforest = fit_RandomForest(X_train, y_train)
 
-    filename = '../models/forest_w2vec_model.pkl'
-    pickle.dump(rforest, open(filename, 'wb'))
+    if save_models:
+        filename = '../models/forest_w2vec_model.pkl'
+        pickle.dump(rforest, open(filename, 'wb'))
+        
+        filename = '../models/w2vec/X_train.pkl'
+        pickle.dump(X_train, open(filename, 'wb'))
+        filename = '../models/w2vec/X_test.pkl'
+        pickle.dump(X_test, open(filename, 'wb'))
+        filename = '../models/w2vec/y_train.pkl'
+        pickle.dump(y_train, open(filename, 'wb'))
+        filename = '../models/w2vec/y_test.pkl'
+        pickle.dump(y_test, open(filename, 'wb'))
     
     y_pred_train = rforest.predict(X_train)
     y_pred_test = rforest.predict(X_test)
@@ -528,6 +515,7 @@ def main():
     print('test accuracy: {:1.2f}'.format(accuracy_score(y_test, y_pred_test)) )
     print(confusion_matrix(y_test, y_pred_test))
 
+    pass
 #=============================================================================#
     #using word 2 vec to create the matrix, weighted by the amounts
     data_matrix_w =[]
@@ -544,12 +532,12 @@ def main():
     data_df = pd.DataFrame(data_matrix_w) 
     data_df['target'] = df.dessert.values.astype(int)
     data_df = data_df.dropna()
-    X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_df,  
+    X_train_w, X_test_w, y_train_w, y_test_w = train_test_split(data_df.drop(['target'],axis=1),  
                                                                 data_df['target'])
 
 
     rforest_w = fit_RandomForest(X_train_w, y_train_w)
-
+    
     y_pred_train_w = rforest_w.predict(X_train_w)
     y_pred_test_w = rforest_w.predict(X_test_w)
     print('train accuracy: {:1.2f}'.format(accuracy_score(y_train_w, y_pred_train_w)) )
@@ -557,8 +545,17 @@ def main():
     print('test accuracy: {:1.2f}'.format(accuracy_score(y_test_w, y_pred_test_w)) )
     print(confusion_matrix(y_test_w, y_pred_test_w))
 
-    filename = '../models/forest_w2vec_weighted_model.pkl'
-    pickle.dump(rforest_w, open(filename, 'wb'))
+    if save_models:
+        filename = '../models/forest_w2vec_weighted_model.pkl'
+        pickle.dump(rforest_w, open(filename, 'wb'))
+        filename = '../models/w2vec_w/X_train_w.pkl'
+        pickle.dump(X_train_w, open(filename, 'wb'))
+        filename = '../models/w2vec_w/X_test_w.pkl'
+        pickle.dump(X_test_w, open(filename, 'wb'))
+        filename = '../models/w2vec_w/y_train_w.pkl'
+        pickle.dump(y_train_w, open(filename, 'wb'))
+        filename = '../models/w2vec_w/y_test_w.pkl'
+        pickle.dump(y_test_w, open(filename, 'wb'))
 
     label = df.dessert.values
     label = to_categorical(np.asarray(label))
@@ -567,58 +564,69 @@ def main():
     unique_ingredients = set(all_ingredients)
     embedding_matrix_w2v = get_w2v_embedding_matrix(unique_ingredients, embedding_dim, w2v_model)
 
-    w2v_rnn_model = embedding_LSTM(data, label,embedding_matrix_w2v, 
+    w2v_rnn_model,x_train, y_train, x_val, y_val, X_test, y_test = embedding_LSTM(data, label,embedding_matrix_w2v, 
                                      unique_ingredients, embedding_dim, 0)
     
-
-    filename = '../models/rnn_w2vec_model.pkl'
-    pickle.dump(w2v_rnn_model, open(filename, 'wb'))
+    if save_models:
+        filename = '../models/rnn_w2vec_model.pkl'
+        pickle.dump(w2v_rnn_model, open(filename, 'wb'))
+        
+        filename = '../models/LTSM_w2vec/x_train.pkl'
+        pickle.dump(x_train, open(filename, 'wb'))
+        filename = '../models/LTSM_w2vec/x_test.pkl'
+        pickle.dump(X_test, open(filename, 'wb'))
+        filename = '../models/LTSM_w2vec/y_train.pkl'
+        pickle.dump(y_train, open(filename, 'wb'))
+        filename = '../models/LTSM_w2vec/y_test.pkl'
+        pickle.dump(y_test, open(filename, 'wb'))
+        
 #=============================================================================#    
 # use the gloVe embeddings
     embedding_matrix = get_glove_embedding_matrix(word_index, embedding_dim)
 
-    glove_rnn_model = embedding_LSTM(data, label,embedding_matrix, 
+    glove_rnn_model,x_train, y_train, x_val, y_val, X_test, y_test  = embedding_LSTM(data, label,embedding_matrix, 
                                      word_index, embedding_dim,1)
 
-    filename = '../models/rnn_glove_model.pkl'
-    pickle.dump(glove_rnn_model, open(filename, 'wb'))
+    if save_models:
+        filename = '../models/rnn_glove_model.pkl'
+        pickle.dump(glove_rnn_model, open(filename, 'wb'))
+        
+        filename = '../models/LTSM_glove/x_train.pkl'
+        pickle.dump(x_train, open(filename, 'wb'))
+        filename = '../models/LTSM_glove/x_test.pkl'
+        pickle.dump(X_test, open(filename, 'wb'))
+        filename = '../models/LTSM_glove/y_train.pkl'
+        pickle.dump(y_train, open(filename, 'wb'))
+        filename = '../models/LTSM_glove/y_test.pkl'
+        pickle.dump(y_test, open(filename, 'wb'))
 #=============================================================================#    
 # finally test with a random embedding matrix
     embedding_rand_matrix = get_random_embedding_matrix(word_index, embedding_dim)
-    random_rnn_model = embedding_LSTM(data, label,embedding_rand_matrix, 
+    random_rnn_model,x_train, y_train, x_val, y_val, X_test, y_test  = embedding_LSTM(data, label,embedding_rand_matrix, 
                                      word_index, embedding_dim,1,trainable=True)
     
-    filename = '../models/rnn_trainable_model.pkl'
-    pickle.dump(random_rnn_model, open(filename, 'wb'))
+    if save_models:
+        filename = '../models/rnn_trainable_model.pkl'
+        pickle.dump(random_rnn_model, open(filename, 'wb'))
+        
+        filename = '../models/LTSM_rand/x_train.pkl'
+        pickle.dump(x_train, open(filename, 'wb'))
+        filename = '../models/LTSM_rand/x_test.pkl'
+        pickle.dump(X_test, open(filename, 'wb'))
+        filename = '../models/LTSM_rand/y_train.pkl'
+        pickle.dump(y_train, open(filename, 'wb'))
+        filename = '../models/LTSM_rand/y_test.pkl'
+        pickle.dump(y_test, open(filename, 'wb'))
 
     print('DONE!!!')        
-#    embedding_layer = Embedding(len(unique_ingredients),
-#                                embedding_dim,weights=[embedding_matrix_w2v],
-#                                input_length=max_seq_length,
-#                                trainable=False)       
 
-#    inp = Input(shape=(max_seq_length,))
-#    x = embedding_layer(inp)
-#    x = Bidirectional(LSTM(embedding_dim,return_sequences=True,dropout=0.1,recurrent_dropout=0.1))(x)
-#    x = GlobalMaxPool1D()(x)
-#    x = Dense(embedding_dim,activation='relu')(x)
-#    x = Dropout(0.1)(x)
-#    x = Dense(len(categories),activation='sigmoid')(x)
-#    model = Model(inputs=inp,outputs=x)
-    
-#    model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
-#    model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=40,batch_size=128);
-#    score = model.evaluate(x_val,y_val)
-#    print('score: {}%'.format(score[1]*100,))
-#    y_pred_test = model.predict(X_test)
-    
-#    score_test = model.evaluate(X_test, y_test)
-#    print('test score evaluation {}%'.format(score_test[1]*100)) 
     
 
 
 if __name__ == "__main__":
-    main()
+    
+    save_models = True
+    main(save_models)
 
 
 

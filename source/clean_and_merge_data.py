@@ -39,7 +39,7 @@ def clean_main():
     new_ingredients = []
     target = []
 #    for i in range(nfiles):
-    for i in range(5):
+    for i in range(3):
         #full data
         fullname = 'full_recipes/sample_layer1_{}.json'.format(i)
         print(fullname)
@@ -48,37 +48,39 @@ def clean_main():
         ingrname = 'ingredients/sample_det_ingrs_{}.json'.format(i)
         print(ingrname)
         
-        
-        raw_data = get_raw_data(fullname)
-        raw_ingredients = get_raw_ingredients(ingrname)
-        
-        desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)
-        
-        total_recipes += len(raw_data)
-        dessert_recipes += len(desserts)
-        del raw_data, raw_ingredients #clear some memory
-        print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
-                            dessert_recipes, total_recipes,
-                            dessert_recipes/total_recipes*100))
-        
-        #get the amounts for each dessert
-        dessert_ings_wq = get_all_quantities(desserts, dessert_ings)
-        clean_ingredients =  clean_dessert_ingredients(dessert_ings_wq)
-        
-        total_clean_desserts += len(clean_ingredients)
-        print(total_clean_desserts)
-        
-        
-        tnew_data, tnew_data_ings, tnew_ingredients, ttarget = classify_desserts(desserts, clean_ingredients)
-        new_data += tnew_data
-        new_data_ings += tnew_data_ings
-        new_ingredients += tnew_ingredients
-        target += ttarget
-        
-        total_classified_desserts += len(new_data)
-        
-        print('classified desserts: ',total_classified_desserts)
-        
+        try:
+            raw_data = get_raw_data(fullname)
+            raw_ingredients = get_raw_ingredients(ingrname)
+            
+            desserts, dessert_ings = find_desserts(raw_data, raw_ingredients)
+            
+            total_recipes += len(raw_data)
+            dessert_recipes += len(desserts)
+            del raw_data, raw_ingredients #clear some memory
+            print('Will look at {} dessert recipes, out of {} (~{:1.1f}%)'.format(
+                                dessert_recipes, total_recipes,
+                                dessert_recipes/total_recipes*100))
+            
+            #get the amounts for each dessert
+            dessert_ings_wq = get_all_quantities(desserts, dessert_ings)
+            clean_ingredients =  clean_dessert_ingredients(dessert_ings_wq)
+            
+            total_clean_desserts += len(clean_ingredients)
+            print(total_clean_desserts)
+            
+            
+            tnew_data, tnew_data_ings, tnew_ingredients, ttarget = classify_desserts(desserts, clean_ingredients)
+            new_data += tnew_data
+            new_data_ings += tnew_data_ings
+            new_ingredients += tnew_ingredients
+            target += ttarget
+            
+            total_classified_desserts += len(new_data)
+            
+            print('classified desserts: ',total_classified_desserts)
+        except:
+            print(fullname, 'or', ingrname, ' NOT found')
+            
     ### save the lists
     save_file = '../data/Merged_Recipe.json'
     with open(save_file, 'w') as outfile:
