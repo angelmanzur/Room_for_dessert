@@ -68,7 +68,7 @@ After filtering the data, I ended with 195,805 dessert recipes, this corresponds
 
 
 
-
+![Histogram of number of ingredients](source/figs/Ingredients_Instructions_hist.png)
 
 
 Finally to be able predict what type of dessert the recipe is trying to make, we split the the desserts into one of the following categories
