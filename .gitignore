@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+#edited emacs files
+*.*~
+
+# ignore dadta folder, at least for now, data files may be too big
+data
