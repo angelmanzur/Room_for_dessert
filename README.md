@@ -77,7 +77,7 @@ To be able to predict the catergoy, I reject the desserts labeled as `other`. Af
 | . | Average | minimum value | maximum value |
 |:---:|:---:|:---:|:---:|
 |Number of ingredients | 13 | 3 | 48 |
-| Number of instructions | 13 | 1 | 139 |
+| Number of instructions | 10 | 1 | 139 |
 
 ![Histogram of number of ingredients](figs/Both_histograms.png)
 
