@@ -112,10 +112,46 @@ Finally let's see if we can predict which recipe you could make given a list of 
 
 Preparing for this project I tried two methods of embeding the data: 1. Training a word2vec model on the ingredients alone. and 2, using a pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) to vectorize the words. The word2vec model used here is different than the one mentioned in the previous section as here we want to include all ingredients, not just flavors. 
 
-As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into a train and test data sets, the train data was fitted using a Random Forest and then evaluated with the test data. The plot below shows the confussion matrix on the test data
+As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into a train and test data sets, the train data was fitted using a Random Forest and then evaluated with the test data. The plot below shows the confussion matrix on the test data, the table below it shows the classification report created
 ![](figs/w2v_rforest_conf_matrix_test.png)
 
+| Category |  precision  |  recall | f1-score  | 
+|:---:|:---:|:---:|:---:|
+|           0   |    0.69 |    0.84  |    0.76 |   
+|          1    |   0.78   |   0.72   |   0.75   |
+|          2    |   0.74   |   0.69   |   0.71   | 
+|           3   |    0.75  |    0.38   |   0.50 |
 
+The results area better than expected, can we do better? The next step was to test a Neural Network to see if we can do a bit better. After reveiwing tutorials and documentation for several neural networks, it is easy to see we could fall into a rabit hole. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
+### Word2Vec + Recurrent Neural Network
+![](figs/w2v_rnn_conf_matrix_test.png)
+
+ | Category |  precision  |  recall | f1-score  | 
+|:---:|:---:|:---:|:---:|
+| 0    |   0.85  |    0.86   |   0.85 |
+      |     1   |    0.85   |   0.88   |   0.86   | 
+      |     2   |    0.87   |   0.84   |   0.85   |   
+      |     3    |   0.81   |   0.73    |  0.77   | 
+      
+### gloVe + Recurrent Neural Network
+![](figs/glove_rnn_conf_matrix_test.png)
+
+  | Category |  precision  |  recall | f1-score  | 
+|:---:|:---:|:---:|:---:|
+    |       0   |    0.85    |  0.90  |    0.87  | 
+     |      1   |    0.88   |   0.88  |    0.88   |  
+     |      2    |   0.90   |   0.84  |    0.87   |
+     |      3   |    0.84   |   0.76    |  0.80   | 
+     
+### Trainable Recurrent Neural Network, 
+![](figs/rand_rnn_conf_matrix_test.png)
+
+| Category |  precision  |  recall | f1-score  | 
+|:---:|:---:|:---:|:---:|
+           0       0.88      0.86      0.87      8488
+           1       0.87      0.89      0.88      6163
+           2       0.84      0.88      0.86      4423
+           3       0.82      0.79      0.80      2147
 
 ## Future work
 
@@ -130,4 +166,4 @@ As a base model I used a Random Forest on the word2vec data. As usual, the data 
 
 
 [1]: https://ieeexplore.ieee.org/document/8758197
-
+[2]: https://arxiv.org/abs/1511.00215
