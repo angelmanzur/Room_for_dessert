@@ -10,7 +10,7 @@ The goals for this project are to analyze over 100k desset recipes found online 
 Certainly there are millions of dessert recipes out there, a simple Google search of 'dessert recipes' returns about 726 million results! Instead of spending the next few weeks (or months!) scrapping different recipe websites searching for the ultimate recipe, we use the data collected by [Marin et al.][1] for their project *Recipe1M+:  A Dataset for Learning Cross-Modal Embeddings for Cooking Recipes and Food Images* published tin the IEEE Tansactions on Pattern Analysis and Machine Intelligence. 
 
 The datasets, which can be accessed through [here](http://im2recipe.csail.mit.edu/), consist of over 1 million with 13 million associated images. For this project, I will only focus on the text recipes. The data is stored in two json files: 
-  - layer1.json file, (1.3Gb) with 1,0290,720 recipes. 
+  - layer1.json file, (1.3Gb) with 1,029,720 recipes. 
   - det_ingrs.json file (344 Mb) with the extracted ingredients for each recipe in the layer1.json file.
   
  Each recipe int he layer1.json file is a dictionary with the following information: 
@@ -67,15 +67,22 @@ not_dessert_ingrs = ['fish','salmon','tuna','chicken','turkey','garlic', 'onion'
 After filtering the data, I ended with 195,805 dessert recipes, this corresponds to ~19.1% of the data. 
 
 
-
-![Histogram of number of ingredients](source/figs/Ingredients_Instructions_hist.png)
-
-
 Finally to be able predict what type of dessert the recipe is trying to make, we split the the desserts into one of the following categories
 ```python
 categories = ['cake', 'cookies', 'pie', 'pudding', 'other']
 ```
-To be able to predict the catergoy, I reject the desserts labeled as `other`. 
+As a fist attempt of classification, a dessert belongs to each category if the category name appears in the title, otherwise it is classified as `other`.
+To be able to predict the catergoy, I reject the desserts labeled as `other`. After all the filters, our dessert data set consisted of 84,884 recipes, ~8.5% of the origina dataset. The table and histograms belos show some statistics on the number of ingredients and the number of recipes in the data set. 
+
+| . | Average | minimum value | maximum value |
+|:---:|:---:|:---:|:---:|
+|Number of ingredients | 13 | 3 | 48 |
+| Number of instructions | 13 | 1 | 139 |
+
+![Histogram of number of ingredients](source/figs/Both_histograms.png)
+
+I know you are wondering which recipe has 48 ingredients, it's a [wedding cake!](https://www.foodnetwork.com/recipes/rosella-ginger-pecan-torte-wedding-cake-recipe-recipe-2118340). There are so many ingredients, because this dessert is a combination of 5 different recipes: a cake, a meringue, a marmalade, a cream, and a chocolate ganache.
+
 
 ## Running some model
 
@@ -86,6 +93,12 @@ To be able to predict the catergoy, I reject the desserts labeled as `other`.
 , an entree? a dessert? Thanksgiving food? Mexican food? American for sure.
 
 ## Future work
+
+ - Get a gym membership!
+ - Get cooking/baking!
+ - Continue cleaning the recipes, and find a better approach of classifing the desserts. For example, the recipes with more than 20 ingredients are usually desserts with multiple components, where each component is potentially a new recipe.
+ - Improve the extraction of the ingredient quantities. One possible option is to train a neural network to extract the quantity and the unit for each ingredient. 
+ - Incorporate the ingredient quantities into the model.
 
 ![Alt Text](https://media.giphy.com/media/l3vRhl6k5tb3oPGLK/giphy.gif)
 
