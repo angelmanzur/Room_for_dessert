@@ -79,7 +79,7 @@ To be able to predict the catergoy, I reject the desserts labeled as `other`. Af
 |Number of ingredients | 13 | 3 | 48 |
 | Number of instructions | 13 | 1 | 139 |
 
-![Histogram of number of ingredients](source/figs/Both_histograms.png)
+![Histogram of number of ingredients](figs/Both_histograms.png)
 
 I know you are wondering which recipe has 48 ingredients, it's a [wedding cake!](https://www.foodnetwork.com/recipes/rosella-ginger-pecan-torte-wedding-cake-recipe-recipe-2118340). There are so many ingredients, because this dessert is a combination of 5 different recipes: a cake, a meringue, a marmalade, a cream, and a chocolate ganache.
 
