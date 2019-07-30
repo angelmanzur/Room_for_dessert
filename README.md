@@ -106,10 +106,16 @@ A different way of displaying the data is reducing the 50-dimension vectors into
 
 ![t-SNE representation of pumkpin](figs/similar_to_pumpkin.png)
 
-## Summary
+### Predicting a dessert type
 
-# Interesting finds...
-, an entree? a dessert? Thanksgiving food? Mexican food? American for sure.
+Finally let's see if we can predict which recipe you could make given a list of ingredients. To create a model there are different approaches we can take, testing different embedding techniques to vectorize the data, (for example 50 vs 100 dimensions) as well as different classification models (Decision Trees, Ramdom Forest, Neural Networks, etc)
+
+Preparing for this project I tried two methods of embeding the data: 1. Training a word2vec model on the ingredients alone. and 2, using a pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) to vectorize the words. The word2vec model used here is different than the one mentioned in the previous section as here we want to include all ingredients, not just flavors. 
+
+As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into a train and test data sets, the train data was fitted using a Random Forest and then evaluated with the test data. The plot below shows the confussion matrix on the test data
+![](figs/w2v_rforest_conf_matrix_test.png)
+
+
 
 ## Future work
 
@@ -121,7 +127,6 @@ A different way of displaying the data is reducing the 50-dimension vectors into
 
 ![Alt Text](https://media.giphy.com/media/l3vRhl6k5tb3oPGLK/giphy.gif)
 
-" width="480" height="270" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/season-6-2015-bbc-l3vRhl6k5tb3oPGLK">via GIPHY</a></p>
 
 
 [1]: https://ieeexplore.ieee.org/document/8758197
