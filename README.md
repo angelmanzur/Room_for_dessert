@@ -112,9 +112,9 @@ Finally let's see if we can predict which recipe you could make given a list of 
 
 Preparing for this project I tried two methods of embeding the data: 1. Training a word2vec model on the ingredients alone. and 2, using a pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) to vectorize the words. The word2vec model used here is different than the one mentioned in the previous section as here we want to include all ingredients, not just flavors. 
 
-As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into a train and test data sets, the train data was fitted using a Random Forest and then evaluated with the test data. The plot below shows the confussion matrix on the test data, the table below it shows the classification report created
+As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into a train and test data sets, the train data was fitted using a Random Forest and then evaluated with the test data. The plot below shows the confussion matrix on the test data, the table below it shows the classification report created. The accuracy score for this model is 0.73.
 ![](figs/w2v_rforest_conf_matrix_test.png)
-Accuracy score: 0.73
+
 
 | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
@@ -132,21 +132,21 @@ Using the same word embedding as with teh random forest, we train a neural netwo
  | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
 | 0    |   0.85  |    0.86   |   0.85 |
-      |     1   |    0.85   |   0.88   |   0.86   | 
-      |     2   |    0.87   |   0.84   |   0.85   |   
-      |     3    |   0.81   |   0.73    |  0.77   | 
+|     1   |    0.85   |   0.88   |   0.86   | 
+|     2   |    0.87   |   0.84   |   0.85   |   
+|     3    |   0.81   |   0.73    |  0.77   | 
       
 ### gloVe + Recurrent Neural Network
 Instead of using our trained word2vec model, I tested  embedding the words using the pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) vector of dimension 50. In this case we do a bit better with an accuracy score of 0.87. 
 ![](figs/glove_rnn_conf_matrix_test.png)
 
 
-  | Category |  precision  |  recall | f1-score  | 
+| Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
-    |       0   |    0.85    |  0.90  |    0.87  | 
-     |      1   |    0.88   |   0.88  |    0.88   |  
-     |      2    |   0.90   |   0.84  |    0.87   |
-     |      3   |    0.84   |   0.76    |  0.80   | 
+|       0   |    0.85    |  0.90  |    0.87  | 
+|      1   |    0.88   |   0.88  |    0.88   |  
+|      2    |   0.90   |   0.84  |    0.87   |
+|      3   |    0.84   |   0.76    |  0.80   | 
      
 ### Trainable Recurrent Neural Network, 
 Finally, let's try not using any word embedding, and let the neural network train the word embedding. In this case the accuracy score was 0.86.
@@ -155,10 +155,10 @@ Finally, let's try not using any word embedding, and let the neural network trai
 
 | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
- |          0   |    0.88   |   0.86   |   0.87   | 
-      |     1   |    0.87   |   0.89   |   0.88  |   
-     |      2   |    0.84   |   0.88   |   0.86   |  
-     |      3   |    0.82   |   0.79   |   0.80   |  
+|          0   |    0.88   |   0.86   |   0.87   | 
+|     1   |    0.87   |   0.89   |   0.88  |   
+|      2   |    0.84   |   0.88   |   0.86   |  
+|      3   |    0.82   |   0.79   |   0.80   |  
 ## Summary
 
 ## Future work
