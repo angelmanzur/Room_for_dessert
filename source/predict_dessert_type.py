@@ -339,7 +339,7 @@ def embedding_LSTM(data, label, embedding_matrix, word_index, dimension, extra_d
     rnn_model = Model(inputs=inp,outputs=x)
 
     rnn_model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
-    rnn_model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=40,batch_size=128);
+    rnn_model.fit(x_train,y_train,validation_data=(x_val,y_val),epochs=20,batch_size=128);
     score = rnn_model.evaluate(x_val,y_val)
     print('score: {}%'.format(score[1]*100,))
     y_pred_test = rnn_model.predict(X_test)

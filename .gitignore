@@ -108,3 +108,6 @@ venv.bak/
 
 # ignore dadta folder, at least for now, data files may be too big
 data
+
+# ignore MAC stuff
+.DS_Store

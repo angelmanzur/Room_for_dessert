@@ -1,0 +1,26 @@
+Accuracy score: 	 train 0.92	 test 0.87
+========================================
+Classification Report train dataset
+              precision    recall  f1-score   support
+
+           0       0.90      0.95      0.92     20420
+           1       0.94      0.93      0.93     14777
+           2       0.94      0.90      0.92     10575
+           3       0.92      0.83      0.87      5159
+
+   micro avg       0.92      0.92      0.92     50931
+   macro avg       0.92      0.90      0.91     50931
+weighted avg       0.92      0.92      0.92     50931
+
+========================================
+Classification Report test dataset
+              precision    recall  f1-score   support
+
+           0       0.85      0.90      0.87      8616
+           1       0.88      0.88      0.88      6105
+           2       0.90      0.84      0.87      4397
+           3       0.84      0.76      0.80      2103
+
+   micro avg       0.87      0.87      0.87     21221
+   macro avg       0.87      0.85      0.86     21221
+weighted avg       0.87      0.87      0.87     21221

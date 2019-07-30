@@ -63,9 +63,9 @@ plt.yticks(fontsize=22)
 
 plt.savefig('figs/Instructions_hist.png')
 
+outliers = np.where(n_ings>20)
 
 
-fig = plt.figure(figsize=(8,6))
 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,6))
 
 ax1.hist(n_ings, bins=20);
@@ -77,7 +77,7 @@ ax2.hist(n_instr, bins=20);
 ax2.set_xlabel('Number of Instructions', fontsize=24)
 ax2.tick_params(labelsize=16)
 
-plt.savefig('figs/Ingredients_Instructions_hist.png')
+plt.savefig('figs/Both_histograms.png')
 #plt.xticks(fontsize=20)
 #plt.yticks(fontsize=20)
 
