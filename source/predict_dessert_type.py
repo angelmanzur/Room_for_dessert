@@ -228,7 +228,7 @@ def clean_dessert_ingredients(all_ingredients):
                 input()
 
         if item%1000==0:
-            logging.info("read {0} recipes".format(item))
+            logging.info("cleaned {0} recipes".format(item))
     return all_ingredients
 
 #=========================================================================# 
@@ -469,14 +469,26 @@ def main(save_models=False):
     
 
     # set a word 2 vector model and fit it with all the ingredients
+    dessert_ingredients = clean_dessert_ingredients(new_ingredients)
+    ingredients_per_recipe, qts_per_recipe, all_ingredients = get_ingredients_lists(dessert_ingredients)
+    
+    
+    w2v_model = get_Word2Vec(embedding_dim, ingredients_per_recipe)
+
+
+    if save_models:
+        filename = '../models/w2vec_model_clean.pkl'
+        pickle.dump(w2v_model, open(filename, 'wb'))
+    #####______________________________________________________________###  
     ingredients_per_recipe, qts_per_recipe, all_ingredients = get_ingredients_lists(new_ingredients)
+    
     
     w2v_model = get_Word2Vec(embedding_dim, ingredients_per_recipe)
 
 
     if save_models:
         filename = '../models/w2vec_model.pkl'
-        pickle.dump(w2v_model, open(filename, 'wb'))
+        pickle.dump(w2v_model, open(filename, 'wb'))  
     
     # use the word 2 vec model to create a data matrix and 
     # fit a random Forest model with it
