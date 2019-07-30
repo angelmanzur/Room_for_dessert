@@ -114,6 +114,7 @@ Preparing for this project I tried two methods of embeding the data: 1. Training
 
 As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into a train and test data sets, the train data was fitted using a Random Forest and then evaluated with the test data. The plot below shows the confussion matrix on the test data, the table below it shows the classification report created
 ![](figs/w2v_rforest_conf_matrix_test.png)
+Accuracy score: 0.73
 
 | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
@@ -124,7 +125,9 @@ As a base model I used a Random Forest on the word2vec data. As usual, the data 
 
 The results area better than expected, can we do better? The next step was to test a Neural Network to see if we can do a bit better. After reveiwing tutorials and documentation for several neural networks, it is easy to see we could fall into a rabit hole. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
 ### Word2Vec + Recurrent Neural Network
+Using the same word embedding as with teh random forest, we train a neural network, obtaining an accuracy score of 0.85
 ![](figs/w2v_rnn_conf_matrix_test.png)
+
 
  | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
@@ -134,7 +137,9 @@ The results area better than expected, can we do better? The next step was to te
       |     3    |   0.81   |   0.73    |  0.77   | 
       
 ### gloVe + Recurrent Neural Network
+Instead of using our trained word2vec model, I tested  embedding the words using the pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) vector of dimension 50. In this case we do a bit better with an accuracy score of 0.87. 
 ![](figs/glove_rnn_conf_matrix_test.png)
+
 
   | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
@@ -144,14 +149,17 @@ The results area better than expected, can we do better? The next step was to te
      |      3   |    0.84   |   0.76    |  0.80   | 
      
 ### Trainable Recurrent Neural Network, 
+Finally, let's try not using any word embedding, and let the neural network train the word embedding. In this case the accuracy score was 0.86.
 ![](figs/rand_rnn_conf_matrix_test.png)
+
 
 | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
-           0       0.88      0.86      0.87      8488
-           1       0.87      0.89      0.88      6163
-           2       0.84      0.88      0.86      4423
-           3       0.82      0.79      0.80      2147
+ |          0   |    0.88   |   0.86   |   0.87   | 
+      |     1   |    0.87   |   0.89   |   0.88  |   
+     |      2   |    0.84   |   0.88   |   0.86   |  
+     |      3   |    0.82   |   0.79   |   0.80   |  
+## Summary
 
 ## Future work
 
