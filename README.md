@@ -85,7 +85,26 @@ I know you are wondering which recipe has 48 ingredients, it's a [wedding cake!]
 
 
 ## Running some model
+### Flavor Matching
+To find ingredients with a similar flavor profile, I trained a word 2 vector model. To do this we need to further clean the dataset, as flour is not a flavor.To do this I applied another filter to the ingredient data to set to label items that are needed in the recipe but do not add flavors to the dessert, for example flour, food coloring, water, baking soda. 
 
+But we are not done yet, some ingredients are referenced with different words, for example, confectionars sugar can also be referenced as icing sugar or powdered sugar, or for example vanilla extract may also be referenced as pure vanilla extract.  I applied several filters renamed some ingredients with a more generic one. For exmaple instant coffee, espresso coffee, dark coffee, were all replaced with coffee. 
+ 
+While this works on the most common ingredients, there is plenty of work on this area, as several ingredients may have different names in different regions, some recipes refer to the ingredients by their brand, in addition there are several misspelled ingredients. 
+
+To train the model, we used the word2ve model from [gensim](https://radimrehurek.com/gensim/models/word2vec.html), and trained it on the recipe ingredients. For the model, each work was converted into a 50-dimension vector.  With the resulting model we are able to predict similar ingredients, for example, the table below shows some of the results:
+
+| Ingredient | Similar Ingredient |  Similar Ingredient | Similar Ingredient |
+|:---: |:---: |:---: |:---: |
+| pumpkin | sweet potato | butternut squash | allspice |
+| rum | brandy | sherry wine | dark rum|
+| almond | marzipan | amaretto | toasted almonds |
+
+The model makes sense, however is is not perfect, for example, almond is also similar to ground almond, sliced almond and blanched almond, more cleaning is needed!
+
+A different way of displaying the data is reducing the 50-dimension vectors into a 2 dimension vector using t-SNE and plotting the results. The plot below shows the top ten ingredients similar to pumpkin.
+
+![t-SNE representation of pumkpin](figs/similar_to_pumpkin.png)
 
 ## Summary
 
