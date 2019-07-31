@@ -68,9 +68,19 @@ def sequence_data(text, ndim=50):
     tokenizer = Tokenizer(num_words = max_num_words)    
 
     tokenizer.fit_on_texts(text)
+    
+    pickle_file = '../models/tokenizer.pkl'
+    pickle.dump(tokenizer, open(pickle_file, 'wb'))
+    
     sequences = tokenizer.texts_to_sequences(text)
+    pickle_file = '../models/sequences.pkl'
+    pickle.dump(sequences, open(pickle_file, 'wb'))
+    
     word_index = tokenizer.word_index    
 
+    pickle_file = '../models/word_index.pkl'
+    pickle.dump(word_index, open(pickle_file, 'wb'))
+    
     data = pad_sequences(sequences, maxlen=max_seq_length)#,padding='post')
 
     return data, word_index
@@ -361,7 +371,7 @@ def get_Word2Vec(dimension, ingredients_per_recipe):
     w2v_model = gensim.models.Word2Vec(
             size=vec_size,
             window=5,
-            min_count=1,
+            min_count=10,
             workers=10,
             alpha=0.02,
             iter=4,

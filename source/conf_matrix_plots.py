@@ -79,7 +79,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     fig.tight_layout()
     return ax
 
-def get_data(model_name, model_file, xtrain_file, xtest_file, ytrain_file, ytest_file):
+def get_data(model_test,model_name, model_file, xtrain_file, xtest_file, ytrain_file, ytest_file):
     
     model = pickle.load(open(model_file, 'rb'))
     x_train = pickle.load(open(xtrain_file, 'rb'))
@@ -97,8 +97,8 @@ def get_data(model_name, model_file, xtrain_file, xtest_file, ytrain_file, ytest
     flat_y_train = []
     flat_y_pred_train = []
     flat_y_pred_test = []
-    
-    if y_test.shape[1]>0:
+    if model_test>1 and model_test<5:
+   # if y_test.shape[1]>0:
         for yvec in y_test:
             pos = np.where(yvec == yvec.max()) 
             flat_y_test.append(pos[0][0])
@@ -119,6 +119,15 @@ def get_data(model_name, model_file, xtrain_file, xtest_file, ytrain_file, ytest
         flat_y_pred_test = y_pred_test
         flat_y_pred_train = y_pred_train
     
+    
+    
+    if model_name == 'random':
+        for item, val in enumerate(flat_y_test):
+            flat_y_test[item] = np.random.randint(4)
+        for item, val in enumerate(flat_y_train):
+            flat_y_train[item] = np.random.randint(4)    
+            
+            
     categories = ['cake', 'cookies', 'pie', 'pudding']
 
 
@@ -157,7 +166,7 @@ def get_data(model_name, model_file, xtrain_file, xtest_file, ytrain_file, ytest
     file1.close()
 
 
-model_test = 4
+model_test = 3
 
 if model_test == 0:
 # w2vec on a random forest base model
@@ -199,10 +208,16 @@ elif model_test == 4:
     y_train_file = '../models/LTSM_rand/y_train.pkl'
     y_test_file = '../models/LTSM_rand/y_test.pkl'
     model_name = 'rand_rnn'
-
+elif model_test == 5:
+    # rnn with random embedding
+    model_file = '../models/forest_w2vec_model.pkl'
+    x_train_file = '../models/w2vec/X_train.pkl'
+    x_test_file = '../models/w2vec/X_test.pkl'
+    y_train_file = '../models/w2vec/y_train.pkl'
+    y_test_file = '../models/w2vec/y_test.pkl'
+    model_name = 'random'     
         
-        
-get_data(model_name, model_file, x_train_file, x_test_file, y_train_file, y_test_file)
+get_data(model_test, model_name, model_file, x_train_file, x_test_file, y_train_file, y_test_file)
 
 
 
