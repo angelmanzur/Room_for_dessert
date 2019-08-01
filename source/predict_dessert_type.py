@@ -68,9 +68,19 @@ def sequence_data(text, ndim=50):
     tokenizer = Tokenizer(num_words = max_num_words)    
 
     tokenizer.fit_on_texts(text)
+    
+    pickle_file = '../models/tokenizer_2.pkl'
+    pickle.dump(tokenizer, open(pickle_file, 'wb'))
+    
     sequences = tokenizer.texts_to_sequences(text)
+    pickle_file = '../models/sequences_2.pkl'
+    pickle.dump(sequences, open(pickle_file, 'wb'))
+    
     word_index = tokenizer.word_index    
 
+    pickle_file = '../models/word_index_2.pkl'
+    pickle.dump(word_index, open(pickle_file, 'wb'))
+    
     data = pad_sequences(sequences, maxlen=max_seq_length)#,padding='post')
 
     return data, word_index
@@ -181,7 +191,14 @@ def clean_dessert_ingredients(all_ingredients):
             tmp_ingredient = tmp_ingredient.replace("'",'')
             tmp_ingredient = tmp_ingredient.replace(" & ",'&')
             tmp_ingredient = tmp_ingredient.replace('fat free', 'fat-free')
-
+            tmp_ingredient = tmp_ingredient.replace('ground ','')
+            #tmp_ingredient = tmp_ingredient.replace('sliced ','')
+            #tmp_ingredient = tmp_ingredient.replace('blanched ','')
+            #tmp_ingredient = tmp_ingredient.replace('slivered ','')
+            tmp_ingredient = tmp_ingredient.replace('frozen ','')
+            tmp_ingredient = tmp_ingredient.replace('fresh ','')
+            
+            
             if re.search('water', tmp_ingredient) and not re.search('watermelon',tmp_ingredient) and not re.search('rose water',tmp_ingredient):
                 to_remove.append(ingr_item)
             
@@ -196,7 +213,9 @@ def clean_dessert_ingredients(all_ingredients):
             generic_ingr, ingr = is_generic_ingredient(tmp_ingredient)
             if generic_ingr:
                 tmp_ingredient = ingr
-              
+            
+            elif re.search('almond', tmp_ingredient):
+                tmp_ingredient = 'almond'
             elif re.search('brown sugar', tmp_ingredient) or re.search('demerara sugar', tmp_ingredient):
                 tmp_ingredient = 'brown sugar'
             
@@ -346,7 +365,8 @@ def embedding_LSTM(data, label, embedding_matrix, word_index, dimension, extra_d
 
     score_test = rnn_model.evaluate(X_test, y_test)
     print('test score evaluation {}%'.format(score_test[1]*100))
-
+    
+    rnn_model.fit(x=data, y=label,epochs=40, batch_size=128)
     return rnn_model, x_train, y_train, x_val, y_val, X_test, y_test
 #=========================================================================#  
 def get_Word2Vec(dimension, ingredients_per_recipe): 
@@ -361,7 +381,7 @@ def get_Word2Vec(dimension, ingredients_per_recipe):
     w2v_model = gensim.models.Word2Vec(
             size=vec_size,
             window=5,
-            min_count=1,
+            min_count=10,
             workers=10,
             alpha=0.02,
             iter=4,
@@ -477,7 +497,7 @@ def main(save_models=False):
 
 
     if save_models:
-        filename = '../models/w2vec_model_clean.pkl'
+        filename = '../models/w2vec_model_clean2.pkl'
         pickle.dump(w2v_model, open(filename, 'wb'))
     #####______________________________________________________________###  
     ingredients_per_recipe, qts_per_recipe, all_ingredients = get_ingredients_lists(new_ingredients)
@@ -486,9 +506,9 @@ def main(save_models=False):
     w2v_model = get_Word2Vec(embedding_dim, ingredients_per_recipe)
 
 
-    if save_models:
-        filename = '../models/w2vec_model.pkl'
-        pickle.dump(w2v_model, open(filename, 'wb'))  
+#    if save_models:
+#        filename = '../models/w2vec_model.pkl'
+#        pickle.dump(w2v_model, open(filename, 'wb'))  
     
     # use the word 2 vec model to create a data matrix and 
     # fit a random Forest model with it
@@ -507,16 +527,16 @@ def main(save_models=False):
     rforest = fit_RandomForest(X_train, y_train)
 
     if save_models:
-        filename = '../models/forest_w2vec_model.pkl'
+        filename = '../models/forest_w2vec_model_2.pkl'
         pickle.dump(rforest, open(filename, 'wb'))
         
-        filename = '../models/w2vec/X_train.pkl'
+        filename = '../models/w2vec/X_train_2.pkl'
         pickle.dump(X_train, open(filename, 'wb'))
-        filename = '../models/w2vec/X_test.pkl'
+        filename = '../models/w2vec/X_test_2.pkl'
         pickle.dump(X_test, open(filename, 'wb'))
-        filename = '../models/w2vec/y_train.pkl'
+        filename = '../models/w2vec/y_train_2.pkl'
         pickle.dump(y_train, open(filename, 'wb'))
-        filename = '../models/w2vec/y_test.pkl'
+        filename = '../models/w2vec/y_test_2.pkl'
         pickle.dump(y_test, open(filename, 'wb'))
     
     y_pred_train = rforest.predict(X_train)
@@ -558,15 +578,15 @@ def main(save_models=False):
     print(confusion_matrix(y_test_w, y_pred_test_w))
 
     if save_models:
-        filename = '../models/forest_w2vec_weighted_model.pkl'
+        filename = '../models/forest_w2vec_weighted_model_2.pkl'
         pickle.dump(rforest_w, open(filename, 'wb'))
-        filename = '../models/w2vec_w/X_train_w.pkl'
+        filename = '../models/w2vec_w/X_train_w_2.pkl'
         pickle.dump(X_train_w, open(filename, 'wb'))
-        filename = '../models/w2vec_w/X_test_w.pkl'
+        filename = '../models/w2vec_w/X_test_w_2.pkl'
         pickle.dump(X_test_w, open(filename, 'wb'))
-        filename = '../models/w2vec_w/y_train_w.pkl'
+        filename = '../models/w2vec_w/y_train_w_2.pkl'
         pickle.dump(y_train_w, open(filename, 'wb'))
-        filename = '../models/w2vec_w/y_test_w.pkl'
+        filename = '../models/w2vec_w/y_test_w_2.pkl'
         pickle.dump(y_test_w, open(filename, 'wb'))
 
     label = df.dessert.values
@@ -580,16 +600,16 @@ def main(save_models=False):
                                      unique_ingredients, embedding_dim, 0)
     
     if save_models:
-        filename = '../models/rnn_w2vec_model.pkl'
+        filename = '../models/rnn_w2vec_model_2.pkl'
         pickle.dump(w2v_rnn_model, open(filename, 'wb'))
         
-        filename = '../models/LTSM_w2vec/x_train.pkl'
+        filename = '../models/LTSM_w2vec/x_train_2.pkl'
         pickle.dump(x_train, open(filename, 'wb'))
-        filename = '../models/LTSM_w2vec/x_test.pkl'
+        filename = '../models/LTSM_w2vec/x_test_2.pkl'
         pickle.dump(X_test, open(filename, 'wb'))
-        filename = '../models/LTSM_w2vec/y_train.pkl'
+        filename = '../models/LTSM_w2vec/y_train_2.pkl'
         pickle.dump(y_train, open(filename, 'wb'))
-        filename = '../models/LTSM_w2vec/y_test.pkl'
+        filename = '../models/LTSM_w2vec/y_test_2.pkl'
         pickle.dump(y_test, open(filename, 'wb'))
         
 #=============================================================================#    
@@ -600,16 +620,16 @@ def main(save_models=False):
                                      word_index, embedding_dim,1)
 
     if save_models:
-        filename = '../models/rnn_glove_model.pkl'
+        filename = '../models/rnn_glove_model_2.pkl'
         pickle.dump(glove_rnn_model, open(filename, 'wb'))
         
-        filename = '../models/LTSM_glove/x_train.pkl'
+        filename = '../models/LTSM_glove/x_train_2.pkl'
         pickle.dump(x_train, open(filename, 'wb'))
-        filename = '../models/LTSM_glove/x_test.pkl'
+        filename = '../models/LTSM_glove/x_test_2.pkl'
         pickle.dump(X_test, open(filename, 'wb'))
-        filename = '../models/LTSM_glove/y_train.pkl'
+        filename = '../models/LTSM_glove/y_train_2.pkl'
         pickle.dump(y_train, open(filename, 'wb'))
-        filename = '../models/LTSM_glove/y_test.pkl'
+        filename = '../models/LTSM_glove/y_test_2.pkl'
         pickle.dump(y_test, open(filename, 'wb'))
 #=============================================================================#    
 # finally test with a random embedding matrix
@@ -618,16 +638,16 @@ def main(save_models=False):
                                      word_index, embedding_dim,1,trainable=True)
     
     if save_models:
-        filename = '../models/rnn_trainable_model.pkl'
+        filename = '../models/rnn_trainable_model_2.pkl'
         pickle.dump(random_rnn_model, open(filename, 'wb'))
         
-        filename = '../models/LTSM_rand/x_train.pkl'
+        filename = '../models/LTSM_rand/x_train_2.pkl'
         pickle.dump(x_train, open(filename, 'wb'))
-        filename = '../models/LTSM_rand/x_test.pkl'
+        filename = '../models/LTSM_rand/x_test_2.pkl'
         pickle.dump(X_test, open(filename, 'wb'))
-        filename = '../models/LTSM_rand/y_train.pkl'
+        filename = '../models/LTSM_rand/y_train_2.pkl'
         pickle.dump(y_train, open(filename, 'wb'))
-        filename = '../models/LTSM_rand/y_test.pkl'
+        filename = '../models/LTSM_rand/y_test_2.pkl'
         pickle.dump(y_test, open(filename, 'wb'))
 
     print('DONE!!!')        
