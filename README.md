@@ -1,4 +1,7 @@
+
 # Leave room for dessert!
+
+![Alt Text](https://media.giphy.com/media/l3vRhl6k5tb3oPGLK/giphy.gif)
 
 ## Goal
 The goals for this project are to analyze over 100k desset recipes found online to:
@@ -158,9 +161,18 @@ Finally, let's try not using any word embedding, and let the neural network trai
 |          0   |    0.88   |   0.86   |   0.87   | 
 |     1   |    0.87   |   0.89   |   0.88  |   
 |      2   |    0.84   |   0.88   |   0.86   |  
-|      3   |    0.82   |   0.79   |   0.80   |  
-## Summary
+|      3   |    0.82   |   0.79   |   0.80   | 
 
+## Summary
+ - For these work we filtered +1 million recipes and extracted the ones for desserts only. Filtering was done based on the recipe titles, and the ingredients. 
+ - I created two word 2 vector models:
+    - A flavor word 2 vec model for the flavor ingredients, where we removed ingredients that are needed but don't give any flavor, such as water, oils, gelatin. But also marged different ingredients into generic ones, for example sliced almonds, slivered almonds, ground almonds, they would be refered as almonds. 
+    - A word 2 vector model containing all the ingredients in the recipes.
+ 
+ - With the flavor word2vec model I am able to find similar ingredients that compliment each other.
+ 
+ - With the word 2 vector model I am able to train a neural network to predict which type of dessert you could make. 
+ 
 ## Future work
 
  - Get a gym membership!
@@ -169,7 +181,7 @@ Finally, let's try not using any word embedding, and let the neural network trai
  - Improve the extraction of the ingredient quantities. One possible option is to train a neural network to extract the quantity and the unit for each ingredient. 
  - Incorporate the ingredient quantities into the model.
 
-![Alt Text](https://media.giphy.com/media/l3vRhl6k5tb3oPGLK/giphy.gif)
+
 
 
 
