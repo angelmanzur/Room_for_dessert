@@ -10,7 +10,7 @@ The goal of this project is to analyze over 100k dessert recipes found online in
   - find an excuse to try new desserts
 
 ## Data
-Certainly there are millions of dessert recipes out there - a simple Google search of 'dessert recipes' returns about 726 million results! Instead of spending the next few weeks (or months!) scraping different recipe websites searching for the ultimate recipe, we can use the data collected by [Marin et al.][1] for their project *Recipe1M+:  A Dataset for Learning Cross-Modal Embeddings for Cooking Recipes and Food Images* published in the IEEE Tansactions on Pattern Analysis and Machine Intelligence. 
+Certainly there are millions of dessert recipes out there - a simple Google search of 'dessert recipes' returns about 726 million results! Instead of spending the next few weeks (or months!) scraping different recipe websites in search of the ultimate recipe, we can use the data collected by [Marin et al.][1] for their project *Recipe1M+:  A Dataset for Learning Cross-Modal Embeddings for Cooking Recipes and Food Images* published in the IEEE Tansactions on Pattern Analysis and Machine Intelligence. 
 
 The datasets, which can be accessed [here](http://im2recipe.csail.mit.edu/), consist of over 1 million recipes with 13 million associated images. For this project, I will only focus on the text recipes. The data is stored in two json files: 
   - layer1.json file, (1.3Gb) with 1,029,720 recipes. 
