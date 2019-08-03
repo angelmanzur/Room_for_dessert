@@ -60,7 +60,7 @@ To further clean the data, I rejected files that had a non-dessert keyword in th
 non_dessert_keywords = ['soup','taco','salad','casserole','pasta','meatloaf','fish','seafood',
                         'risotto','stew','savory','savoury','stir-fry','corn bread','steak','pasta', ... ]
 ```
-However, if watching all the seasons of "The Great British Bake Off" has taught me anything, it is that there are savory pies, and that cookies may be called biscuits. So, to further clean the data, I scanned through the ingredients in the recipe, looking for non-dessert ingredients. This step is a bit tricky as I want to keep unusual combinations, such as "kale chocolate chip cookies" or "bacon donuts"; however, I can't imagine any dessert containing any sort of fish in it. The final list of ingredients to reject is:
+However, if watching all the seasons of "The Great British Bake Off" has taught me anything, it is that there are savory pies, and that cookies may be called biscuits. So, to further clean the data, I scanned through the ingredients in the recipe, looking for non-dessert ingredients. This step is a bit tricky as I want to keep unusual combinations, such as "kale chocolate chip cookies" or "bacon donuts"; however, I can't imagine any dessert containing fish. The final list of ingredients to reject is:
 ```python
 not_dessert_ingrs = ['fish','salmon','tuna','chicken','turkey','garlic', 'onion','lamb',
     'sausage','shrimp','beef', 'taco','shallot','veal','pork','mincemeat','crab','filet',
@@ -126,7 +126,7 @@ As a base model I used a Random Forest on the word2vec data. As usual, the data 
 |          2    |   0.74   |   0.69   |   0.71   | 
 |           3   |    0.75  |    0.38   |   0.50 |
 
-The results are better than expected, but can we do better? The next step was to test a Neural Network to see if we can improve. After reveiwing tutorials and documentation for several neural networks, it is easy to see that we could fall into a rabbit hole given our many options. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
+The results are better than expected, but can we do better? The next step was to test a Neural Network to see if we can improve. After reviewing tutorials and documentation for several neural networks, it is easy to see that we could fall into a rabbit hole given our many options. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
 ### Word2Vec + Recurrent Neural Network
 Using the same word embedding as with the random forest, we train a neural network, obtaining an accuracy score of 0.85
 ![](figs/w2v_rnn_conf_matrix_test.png)
