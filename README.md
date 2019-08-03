@@ -60,7 +60,7 @@ To further clean the data, I rejected files that had a non-dessert keyword in th
 non_dessert_keywords = ['soup','taco','salad','casserole','pasta','meatloaf','fish','seafood',
                         'risotto','stew','savory','savoury','stir-fry','corn bread','steak','pasta', ... ]
 ```
-However, if watching all the seasons of "The Great British Bake Off" has taught me anything, it is that there are savory pies, and that cookies may be called biscuits. So, to further clean the data, I scanned through the ingredeints in the recipe, looking for non-dessert ingredients. This step is a bit tricky as I want to keep unusual combinations, such as "kale chocolate chip cookies" or "bacon donuts", however, I can't imagine any dessert containing any sort of fish in it. The final list of ingredients to reject is:
+However, if watching all the seasons of "The Great British Bake Off" has taught me anything, it is that there are savory pies, and that cookies may be called biscuits. So, to further clean the data, I scanned through the ingredients in the recipe, looking for non-dessert ingredients. This step is a bit tricky as I want to keep unusual combinations, such as "kale chocolate chip cookies" or "bacon donuts"; however, I can't imagine any dessert containing any sort of fish in it. The final list of ingredients to reject is:
 ```python
 not_dessert_ingrs = ['fish','salmon','tuna','chicken','turkey','garlic', 'onion','lamb',
     'sausage','shrimp','beef', 'taco','shallot','veal','pork','mincemeat','crab','filet',
@@ -75,7 +75,7 @@ Finally, to be able predict what type of dessert the recipe is trying to make, w
 categories = ['cake', 'cookies', 'pie', 'pudding', 'other']
 ```
 As a first attempt at classification, a dessert belongs to each category if the category name appears in the title; otherwise, it is classified as `other`.
-To be able to predict the catergoy, I reject the desserts labeled as `other`. After all the filters, our dessert data set consisted of 84,884 recipes, ~8.5% of the original dataset. The table and histograms below show some statistics on the number of ingredients and the number of recipes in the data set. 
+To be able to predict the category, I reject the desserts labeled as `other`. After all the filters, our dessert data set consisted of 84,884 recipes, ~8.5% of the original dataset. The table and histograms below show some statistics on the number of ingredients and the number of recipes in the data set. 
 
 | . | Average | minimum value | maximum value |
 |:---:|:---:|:---:|:---:|
@@ -89,7 +89,7 @@ I know you are wondering which recipe has 48 ingredients - it's a [wedding cake!
 
 ## Running some model
 ### Flavor Matching
-To find ingredients with a similar flavor profile, I trained a word 2 vector model. To do this we need to further clean the dataset, as flour is not a flavor.To do this I applied another filter to the ingredient data to set to label items that are needed in the recipe but do not add flavors to the dessert; for example: flour, food coloring, water, baking soda. 
+To find ingredients with a similar flavor profile, I trained a word 2 vector model. To do this we need to further clean the dataset, as flour, for one, is not a flavor. I applied another filter to the ingredient data set to label items that are needed in the recipe but do not add flavors to the dessert; for example: flour, food coloring, water, and baking soda. 
 
 But we are not done yet, as some ingredients are referenced with different words; for example, confectioners sugar can also be referenced as icing sugar or powdered sugar, and vanilla extract may also be referenced as pure vanilla extract.  I applied several filters and renamed some ingredients with more generic names. For example, instant coffee, espresso coffee, and dark coffee were all replaced with coffee. 
  
@@ -111,9 +111,9 @@ A different way of displaying the data is reducing the 50-dimension vectors into
 
 ### Predicting a dessert type
 
-Finally, let's see if we can predict which recipe you could make given a list of ingredients. To create a model there are different approaches we can take - testing different embedding techniques to vectorize the data (for example 50 vs 100 dimensions) as well as different classification models (Decision Trees, Ramdom Forest, Neural Networks, etc)
+Finally, let's see if we can predict which recipe you could make given a list of ingredients. To create a model there are different approaches we can take - testing different embedding techniques to vectorize the data (for example 50 vs 100 dimensions) as well as different classification models (Decision Trees, Random Forest, Neural Networks, etc)
 
-In preparation for this project I tried two methods of embeding the data: first, training a word2vec model on the ingredients alone, and second, using a pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) to vectorize the words. The word2vec model used here is different than the one mentioned in the previous section as here we want to include all ingredients (like flour and sugar), rather than just flavors (like almond and pumpkin). 
+In preparation for this project I tried two methods of embedding the data: first, training a word2vec model on the ingredients alone, and second, using a pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) to vectorize the words. The word2vec model used here is different than the one mentioned in the previous section as here we want to include all ingredients (like flour and sugar), rather than just flavors (like almond and pumpkin). 
 
 As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into train and test data sets, the train data was fitted using a Random Forest, and then the model was evaluated with the test data. The plot below shows the confusion matrix on the test data and the table below that shows the classification report created. The accuracy score for this model is 0.73.
 ![](figs/w2v_rforest_conf_matrix_test.png)
@@ -126,7 +126,7 @@ As a base model I used a Random Forest on the word2vec data. As usual, the data 
 |          2    |   0.74   |   0.69   |   0.71   | 
 |           3   |    0.75  |    0.38   |   0.50 |
 
-The results area better than expected, but can we do better? The next step was to test a Neural Network to see if we can do a bit better. After reveiwing tutorials and documentation for several neural networks, it is easy to see that we could fall into a rabbit hole given our many options. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
+The results are better than expected, but can we do better? The next step was to test a Neural Network to see if we can improve. After reveiwing tutorials and documentation for several neural networks, it is easy to see that we could fall into a rabbit hole given our many options. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
 ### Word2Vec + Recurrent Neural Network
 Using the same word embedding as with the random forest, we train a neural network, obtaining an accuracy score of 0.85
 ![](figs/w2v_rnn_conf_matrix_test.png)
@@ -166,7 +166,7 @@ Finally, let's try not using any word embedding, and let the neural network trai
 ## Summary
  - For this work we filtered +1 million recipes and extracted the ones for desserts only. Filtering was done based on the recipe titles and the ingredients. 
  - I created two word 2 vector models:
-    - A flavor word 2 vec model for the flavor ingredients, where we removed ingredients that are needed but don't give any flavor, such as water, oils, and gelatin. We also marged different ingredients into generic ones; for example, sliced almonds, slivered almonds, and ground almonds would all be referred to as almonds. 
+    - A flavor word 2 vec model for the flavor ingredients, where we removed ingredients that are needed but don't give any flavor, such as water, oils, and gelatin. We also merged different ingredients into generic ones; for example, sliced almonds, slivered almonds, and ground almonds would all be referred to as almonds. 
     - A word 2 vector model containing all the ingredients in the recipes.
  
  - With the flavor word2vec model I am able to find similar ingredients that complement each other.
