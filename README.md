@@ -1,10 +1,10 @@
 
 # Leave room for dessert!
 
-![Alt Text](https://media.giphy.com/media/l3vRhl6k5tb3oPGLK/giphy.gif)
+![The Great British Bake Off](https://media.giphy.com/media/l3vRhl6k5tb3oPGLK/giphy.gif)
 
 ## Goal
-The goal of this project is to analyze over 100k dessert recipes found online in order to:
+The goal of this project is to analyze over 84k dessert recipes found online in order to:
   - find unique flavor combinations
   - tell the user what type of dessert to make, given a certain number of ingredients
   - find an excuse to try new desserts
@@ -116,8 +116,8 @@ Finally, let's see if we can predict which recipe you could make given a list of
 In preparation for this project I tried two methods of embedding the data: first, training a word2vec model on the ingredients alone, and second, using a pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) to vectorize the words. The word2vec model used here is different than the one mentioned in the previous section as here we want to include all ingredients (like flour and sugar), rather than just flavors (like almond and pumpkin). 
 
 As a base model I used a Random Forest on the word2vec data. As usual, the data was broken into train and test data sets, the train data was fitted using a Random Forest, and then the model was evaluated with the test data. The plot below shows the confusion matrix on the test data and the table below that shows the classification report created. The accuracy score for this model is 0.73.
-![](figs/w2v_rforest_conf_matrix_test.png)
 
+![Confusion matrix on the test dataset from a random forest model](figs/w2v_rforest_conf_matrix_test.png)
 
 | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
@@ -128,9 +128,9 @@ As a base model I used a Random Forest on the word2vec data. As usual, the data 
 
 The results are better than expected, but can we do better? The next step was to test a Neural Network to see if we can improve. After reviewing tutorials and documentation for several neural networks, it is easy to see that we could fall into a rabbit hole given our many options. Instead of exploring multiple models, I decided to pick a RNN model as it has shown to be quite effective [2], and test different vectorization models.
 ### Word2Vec + Recurrent Neural Network
-Using the same word embedding as with the random forest, we train a neural network, obtaining an accuracy score of 0.85
-![](figs/w2v_rnn_conf_matrix_test.png)
+Using the same word embedding as with the previous model, but now we train a Recurrent Neural Network, obtaining an accuracy score of 0.85
 
+![Confusion matrix on the test dataset with a word2vec + RNN](figs/w2v_rnn_conf_matrix_test.png)
 
  | Category |  precision  |  recall | f1-score  | 
 |:---:|:---:|:---:|:---:|
@@ -141,7 +141,8 @@ Using the same word embedding as with the random forest, we train a neural netwo
       
 ### gloVe + Recurrent Neural Network
 Instead of using our trained word2vec model, I tested  embedding the words using the pre-trained [gloVe](https://nlp.stanford.edu/projects/glove/) vector of dimension 50. In this case we do a bit better with an accuracy score of 0.87. 
-![](figs/glove_rnn_conf_matrix_test.png)
+
+![Confusion matrix on the test dataset with gloVe + RNN](figs/glove_rnn_conf_matrix_test.png)
 
 
 | Category |  precision  |  recall | f1-score  | 
@@ -153,7 +154,8 @@ Instead of using our trained word2vec model, I tested  embedding the words using
      
 ### Trainable Recurrent Neural Network, 
 Finally, let's try not using any word embedding, and let the neural network train the word embedding. In this case the accuracy score was 0.86.
-![](figs/rand_rnn_conf_matrix_test.png)
+
+![Confusion matrix the the RNN training the embedding](figs/rand_rnn_conf_matrix_test.png)
 
 
 | Category |  precision  |  recall | f1-score  | 
@@ -180,8 +182,6 @@ Finally, let's try not using any word embedding, and let the neural network trai
  - Continue cleaning the recipes, and find a better approach of classifing the desserts. For example, the recipes with more than 20 ingredients are usually desserts with multiple components, where each component is potentially a new recipe.
  - Improve the extraction of the ingredient quantities. One possible option is to train a neural network to extract the quantity and the unit for each ingredient. 
  - Incorporate the ingredient quantities into the model.
-
-
 
 
 
