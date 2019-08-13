@@ -9,6 +9,8 @@ The goal of this project is to analyze over 84k dessert recipes found online in 
   - find unique flavor combinations
   - tell the user what type of dessert to make, given a certain number of ingredients
   - find an excuse to try new desserts
+ 
+TLDR ?   Give it a try yourslf [https://leaveroomfordessert.appspot.com](https://leaveroomfordessert.appspot.com), it may take several seconds to load if it hasn't been called recently, give it some time :)
 
 ## Data
 Certainly there are millions of dessert recipes out there - a simple Google search of 'dessert recipes' returns about 726 million results! Instead of spending the next few weeks (or months!) scraping different recipe websites in search of the ultimate recipe, we can use the data collected by [Marin et al.][1] for their project *Recipe1M+:  A Dataset for Learning Cross-Modal Embeddings for Cooking Recipes and Food Images* published in the IEEE Tansactions on Pattern Analysis and Machine Intelligence. 
