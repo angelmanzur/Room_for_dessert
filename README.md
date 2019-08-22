@@ -90,7 +90,7 @@ To be able to predict the category, I reject the desserts labeled as `other`. Af
 I know you are wondering which recipe has 48 ingredients - it's a [wedding cake!](https://www.foodnetwork.com/recipes/rosella-ginger-pecan-torte-wedding-cake-recipe-recipe-2118340). There are so many ingredients because this dessert is a combination of 5 different recipes: a cake, a meringue, a marmalade, a cream, and a chocolate ganache.
 
 
-## Running some model
+## Running some models
 ### Flavor Matching
 To find ingredients with a similar flavor profile, I trained a word 2 vector model. To do this we need to further clean the dataset, as flour, for one, is not a flavor. I applied another filter to the ingredient data set to label items that are needed in the recipe but do not add flavors to the dessert; for example: flour, food coloring, water, and baking soda. 
 
@@ -177,6 +177,9 @@ Finally, let's try not using any word embedding, and let the neural network trai
  - With the flavor word2vec model I am able to find similar ingredients that complement each other.
  
  - With the word 2 vector model I am able to train a neural network to predict which type of dessert you could make. 
+ 
+ Ready to test the model on your own? Give it a try yourslf [https://leaveroomfordessert.appspot.com](https://leaveroomfordessert.appspot.com), it may take several seconds to load if it hasn't been called recently, give it some time :)
+ Are you interested in the website? I created it with Django and it is being hosted as an app in the Google Cloud Platfom, you can check the code [https://github.com/angelmanzur/RoomForDessert_WebApp](here)
  
 ## Future work
 
